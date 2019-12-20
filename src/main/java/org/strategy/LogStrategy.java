@@ -53,15 +53,29 @@ public class LogStrategy {
     Path targetDir = Paths.get(metaTradeFileDir);
 
     public LogStrategy() throws Exception {
+        setVariables();
+    }
+
+    void setVariables(){
         dbConnection = sqlLiteConnector.con;
         decimalFormatSymbols.setDecimalSeparator('.');
         decimalFormatWith2Dec = new DecimalFormat("#.00", decimalFormatSymbols);
         decimalFormatWith5Dec = new DecimalFormat("#.00000", decimalFormatSymbols);
+        try (InputStream input = new FileInputStream("config.properties")) {
+            Properties prop = new Properties();
+            prop.load(input);
+            metaTradeFileDir=prop.getProperty("mt4.filesDirectory");
+            input.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
     }
 
     public LogStrategy(TradeEngine tradeEngine) throws Exception {
 
         ResultSet resultSet;
+        setVariables();
 //        dbConnection =DriverManager.getConnection("jdbc:h2:tcp://localhost/C:\\\\Users\\\\Barbocz Attila\\\\ta4j;AUTO_SERVER=TRUE;user=sa;password=12345");
 //        dbConnection = DriverManager.getConnection("jdbc:h2:~\\ta4j;","sa","12345");
         this.tradeEngine = tradeEngine;
