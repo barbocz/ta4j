@@ -49,8 +49,8 @@ public class LogStrategy {
 
     PreparedStatement insertTrade, updateTrade, insertEvaluation, updateStrategy;
 
-    String metaTradeFileDir = "C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\294B6FCE6F709DE82DA4C87FDBF1DE36\\MQL4\\Files\\";
-    Path targetDir = Paths.get(metaTradeFileDir);
+    String metaTradeFileDir;
+    Path targetDir ;
 
     public LogStrategy() throws Exception {
         setVariables();
@@ -65,6 +65,7 @@ public class LogStrategy {
             Properties prop = new Properties();
             prop.load(input);
             metaTradeFileDir=prop.getProperty("mt4.filesDirectory");
+            targetDir = Paths.get(metaTradeFileDir);
             input.close();
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -75,6 +76,7 @@ public class LogStrategy {
     public LogStrategy(TradeEngine tradeEngine) throws Exception {
 
         ResultSet resultSet;
+
         setVariables();
 //        dbConnection =DriverManager.getConnection("jdbc:h2:tcp://localhost/C:\\\\Users\\\\Barbocz Attila\\\\ta4j;AUTO_SERVER=TRUE;user=sa;password=12345");
 //        dbConnection = DriverManager.getConnection("jdbc:h2:~\\ta4j;","sa","12345");
@@ -82,11 +84,8 @@ public class LogStrategy {
         if (tradeEngine.timeSeriesRepo.processType == TimeSeriesRepo.ProcessType.MT4) {             // MT4-es feed-elésnél a H2-be
             online = true;
             dbConnection = jdbcConnectionPool.getConnection();
-        } else dbConnection = sqlLiteConnector.con;                                                 // backtest esetén SQLite-ba
+        }                                                 // backtest esetén SQLite-ba
 
-        decimalFormatSymbols.setDecimalSeparator('.');
-        decimalFormatWith2Dec = new DecimalFormat("#.00", decimalFormatSymbols);
-        decimalFormatWith5Dec = new DecimalFormat("#.00000", decimalFormatSymbols);
 
         Statement statement = dbConnection.createStatement();
         statement.executeUpdate("insert into strategy (SOURCE) values ('" + (online ? "MT4" : "FILE:" + tradeEngine.timeSeriesRepo.coreSeries.ohlcvFileName) + "')");
