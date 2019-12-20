@@ -13,7 +13,7 @@ import org.ta4j.core.Bar;
 import org.ta4j.core.TimeSeries;
 
 import java.io.*;
-//new line 223
+//new line 2234
 
 public class Test1 {
     public static void main(String[] args) throws Exception {
