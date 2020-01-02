@@ -168,7 +168,7 @@ public class OverIndicatorRule extends AbstractRule {
             }
         }
 //        getCore().debugRule(indexForFirst,this,satisfied);
-        tradeEngine.logStrategy.logRule(this,time,indexForFirst,satisfied);
+        if (satisfied)  tradeEngine.logStrategy.logRule(this,time,indexForFirst,satisfied);
 
         return satisfied;
     }
@@ -176,9 +176,10 @@ public class OverIndicatorRule extends AbstractRule {
     @Override
     public String getParameters() {
         String info=getClass().getSimpleName();
-        info+=" ("+first.getClass().getSimpleName();
-        if (second!=null) info+=", "+second.getClass().getSimpleName()+")";
+        info+=" ("+first.getClass().getSimpleName()+" M"+first.getTimeSeries().getPeriod();
+        if (second!=null) info+=", "+second.getClass().getSimpleName()+" M"+second.getTimeSeries().getPeriod()+")";
         else info+=")";
+        if (shift>0) info+=" in "+shift;
         return info;
     }
 }

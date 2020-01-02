@@ -1,6 +1,13 @@
 package org;
 
+import org.strategy.TimeSeriesRepo;
+import org.ta4j.core.Rule;
+import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
+import org.ta4j.core.trading.rules.OverIndicatorRule;
+
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.Properties;
 
 public class Test2 {
@@ -8,20 +15,13 @@ public class Test2 {
 
     public static void main(String[] args) throws Exception {
 
-        try (InputStream input = new FileInputStream("config.properties")) {
+        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(timeSeriesRepo.coreSeries);
+        KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(timeSeriesRepo.coreSeries, 34);
+        Rule closePriceOverKeltnerUpperIn8=new OverIndicatorRule(closePrice, kcM, 8);
 
-            Properties prop = new Properties();
-
-            // load a properties file
-            prop.load(input);
-
-            // get the property value and print it out
-            System.out.println(prop.getProperty("mt4.filesDirectory"));
-//            System.out.println(prop.getProperty("db.user"));
-//            System.out.println(prop.getProperty("db.password"));
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        for(Field f : closePriceOverKeltnerUpperIn8.getClass().getFields()) {
+            System.out.println(f.getGenericType() +" "+f.getName() + " = " + f.get(closePriceOverKeltnerUpperIn8));
         }
 //        LogStrategy logStrategy = new LogStrategy();
 //        logStrategy.getMT4data(1117);

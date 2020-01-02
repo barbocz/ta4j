@@ -13,7 +13,7 @@ public abstract class Strategy {
     public double orderAmount=1;
 
     public abstract void init();
-    public abstract void onTickEvent();
+    public abstract void onTickEvent() throws Exception;
     public abstract void onTradeEvent(Order order);
     public abstract void onBarChangeEvent(int timeFrame) throws Exception;
     public abstract void onOneMinuteDataEvent();

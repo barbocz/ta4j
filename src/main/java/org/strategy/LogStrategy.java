@@ -180,6 +180,7 @@ public class LogStrategy {
                         if (!bufferIndexesForRules.containsKey(rule)) bufferIndexesForRules.put(rule, 7);
                     }
                     pstmt.setString(4, rule.getRuleItems().get(ruleHashMap));
+//                    pstmt.setString(4, rule.getClass().getSimpleName());
                     pstmt.setInt(5, ruleHashMap);
 
                     pstmt.setInt(6, subWindowIndex);
@@ -225,7 +226,7 @@ public class LogStrategy {
         Object indicatorValue;
         for (Indicator indicator : indicatorsForLog) {
             TimeSeries indicatorSeries = indicator.getTimeSeries();
-            if (indicatorSeries.getPeriod() != timeFrame) continue;
+//            if (indicatorSeries.getPeriod() != timeFrame) continue;
             int index = indicatorSeries.getIndex(logTime);
 //                Num indicatorValue1 = (Num) indicator.getValue(index);
 //                tradeEngine.info=timeFrame+", "+indicator.getClass().getSimpleName()+",  "+logTime.toString()+", "+index;

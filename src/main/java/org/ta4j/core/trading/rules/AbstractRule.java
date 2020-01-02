@@ -41,6 +41,8 @@ public abstract class AbstractRule implements Rule {
     public int period=1;
     public TradeEngine tradeEngine;
 
+    public String simpleName;
+
 
     private HashMap<Integer, String> ruleItems;
     private String ruleItem;
