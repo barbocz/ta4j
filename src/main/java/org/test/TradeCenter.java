@@ -407,11 +407,11 @@ public class TradeCenter {
                             try {
                                 TimeSeriesRepo timeSeriesRepo=timeSeriesRepos.get(symbol);
                                 Class<?> clazz = Class.forName("org.strategy.myEntryStrategies." + entryStrategyName.getText());
-                                Constructor<?> constructor = clazz.getConstructor(Integer.class, TimeSeriesRepo.class);
-                                Strategy entryStrategy = (Strategy) constructor.newInstance(timeFrame, timeSeriesRepo);
+                                Constructor<?> constructor = clazz.getConstructor();
+                                Strategy entryStrategy = (Strategy) constructor.newInstance();
                                 clazz = Class.forName("org.strategy.myExitStrategies." + exitStrategyName.getText());
-                                constructor = clazz.getConstructor(Integer.class, TimeSeriesRepo.class);
-                                Strategy exitStrategy = (Strategy) constructor.newInstance(timeFrame,timeSeriesRepo);
+                                constructor = clazz.getConstructor();
+                                Strategy exitStrategy = (Strategy) constructor.newInstance();
 ////                                TradeEngine tradeEngine = new TradeEngine(key, entryStrategy, exitStrategy, controller);
                                 timeSeriesRepo.processType= TimeSeriesRepo.ProcessType.MT4;
                                 TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,timeFrame,entryStrategy,exitStrategy,null,TradeEngine.LogLevel.TOTAL);
