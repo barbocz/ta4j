@@ -14,7 +14,7 @@ public class UnitTest {
     public static void main(String[] args) throws Exception {
 
         TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
-        Strategy strategy=new KeltnerEntry(3,timeSeriesRepo);
+        Strategy strategy=new KeltnerEntry();
 
         String packages[] = strategy.toString().split("\\.");
         String path = System.getProperty("user.dir") + "\\ta4j-core\\src\\main\\java";

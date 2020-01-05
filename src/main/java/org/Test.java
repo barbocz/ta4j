@@ -88,7 +88,7 @@ public class Test {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
 
         TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
-        Strategy keltnerEntry=new KeltnerEntry(3,timeSeriesRepo);
+        Strategy keltnerEntry=new KeltnerEntry();
         Strategy keltnerEntryWithCCI=new KeltnerEntryWithCCI(3,timeSeriesRepo);
         Strategy testEntry=new TestEntry(3,timeSeriesRepo);
 
@@ -108,7 +108,7 @@ public class Test {
 //        exportFile.write(content.toString());
 //        exportFile.close();
 
-        Strategy keltnerExit=new KeltnerExit(3,timeSeriesRepo);
+        Strategy keltnerExit=new KeltnerExit();
         Strategy cciExit=new CCIExit(3,timeSeriesRepo);
 //        TradeEngine tradeEngine=new TradeEngine("test",keltnerEntry,keltnerExit,null);
 

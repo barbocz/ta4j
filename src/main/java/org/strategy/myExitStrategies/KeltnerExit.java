@@ -15,19 +15,10 @@ public class KeltnerExit extends Strategy  {
     KeltnerChannelLowerIndicator keltnerChannelLowerIndicator;
     HighestValueIndicator highestValueIndicator;
     LowestValueIndicator lowestValueIndicator;
-    ATRIndicator atrIndicator;
-
-    public KeltnerExit(Integer timeFrame, TimeSeriesRepo timeSeriesRepo) {
 
 
-        // log:
-//        rulesForLog.add(ruleForSell);
-//        rulesForLog.add(ruleForBuy);
-//        indicatorsForLog.add(closePriceD);
-//        indicatorsForLog.add(kcU);
+    public KeltnerExit() {
 
-//        indicatorsForLog.add(chaikinIndicator);
-//        setLogOn();
 
     }
 
@@ -46,31 +37,14 @@ public class KeltnerExit extends Strategy  {
         LowPriceIndicator lowPriceIndicator=new LowPriceIndicator(tradeEngine.series);
         lowestValueIndicator=new LowestValueIndicator(lowPriceIndicator,89);
 
-        atrIndicator=new ATRIndicator(tradeEngine.series,16);
 
 
-
-
-
-        ruleForSell = new OverIndicatorRule(closePrice, keltnerChannelUpperIndicator, 8);
     }
 
 
     public void onTradeEvent(Order order) {
 
-
-//        if (order.type == Order.Type.BUY) {
-//            if (order.openPrice > keltnerChannelLowerIndicator.getValue(tradeEngine.prevIndex).doubleValue())
-//                order.stopLoss = keltnerChannelLowerIndicator.getValue(tradeEngine.prevIndex).doubleValue();
-//        } else {
-//            if (order.openPrice < keltnerChannelUpperIndicator.getValue(tradeEngine.prevIndex).doubleValue())
-//                order.stopLoss = keltnerChannelUpperIndicator.getValue(tradeEngine.prevIndex).doubleValue();
-//        }
     }
-
-//    public void onExitEvent(Order order){
-//        order.closedAmount=order.amount;
-//    }
 
 
     public void onTickEvent() {
@@ -104,12 +78,12 @@ public class KeltnerExit extends Strategy  {
 
                         tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
 //                        tradeEngine.setExitPrice(order, keltnerChannelLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-                        tradeEngine.setExitPrice(order, lowestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue() - 0.0 * atrIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
+                        tradeEngine.setExitPrice(order, lowestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue() , TradeEngine.ExitMode.STOPLOSS, true);
 
                     } else {
                         tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
 //                        tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-                        tradeEngine.setExitPrice(order, highestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue()+ 0.0 * atrIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
+                        tradeEngine.setExitPrice(order, highestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
                     }
 
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
@@ -128,68 +102,14 @@ public class KeltnerExit extends Strategy  {
 
                 }
 
-
-//                if (order.type == Order.Type.BUY) {
-//                    if (tradeEngine.currentBar.getOpenPrice().doubleValue() > keltnerChannelLowerIndicator.getValue(tradeEngine.prevIndex).doubleValue()) {
-//                        order.stopLoss = keltnerChannelLowerIndicator.getValue(tradeEngine.prevIndex).doubleValue();
-//                    }
-//                } else {
-//                    if (tradeEngine.currentBar.getOpenPrice().doubleValue() < keltnerChannelUpperIndicator.getValue(tradeEngine.prevIndex).doubleValue()) {
-//                        order.stopLoss = keltnerChannelUpperIndicator.getValue(tradeEngine.prevIndex).doubleValue();
-//                    }
-//                }
-//            System.out.format("%s = %s - %s: open: %s -  takeProfit: %s\n", order.openTime, tradeEngine.series.getCurrentTime(), order.type, order.openPrice, order.takeProfit);
             }
         }
-//        System.out.println("onBarChangeEvent------------- "+timeFrame);
-//        try {
-//            TimeUnit.SECONDS.sleep(timeFrame);
-//
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        System.out.println("onBarChangeEvent------------- "+eventSeries.timeFrame+" cp: "+slowerClosePrice.getValue(timeSeriesRepo.getTimeSeries(3).getEndIndex()-1));
-//        System.out.println("onBarChangeEvent rule ------------- "+eventSeries.timeFrame+" cp: "+ruleForSell.isSatisfied(series.getEndIndex()-1));
-//        if (!strategy.ruleForSell.isSatisfied(eventSeries.getEndIndex())) System.out.println("NOT SELL");;
-//    if (series.getEndIndex()-1==990) {
-//        if (ruleForSell.isSatisfied(series.getEndTime()))
-//            System.out.println("Sell Entry: " + (series.getEndIndex() - 1)+"    "+eventSeries.timeFrame);
-//    }
-//        System.out.println(series.getEndIndex()-1);
-
-//        int i = series.getEndIndex();
-//        System.out.println("------------ "+i);
-
-//        System.out.println(timeFrame+" --------------------  "+series.getIndex(time) + ": " + time);
-
-
-//        for (Indicator indicator : indicatorsForLog) {
-//            if (indicator.getTimeSeries().getPeriod() == timeFrame) {
-//                TimeSeries indicatorSeries = indicator.getTimeSeries();
-//                if (indicatorSeries.getEndIndex() > -1) {
-//                    Num iValue = (Num) indicator.getValue(indicatorSeries.getEndIndex() - 1);
-//                    logIndicator(indicator, indicatorSeries.getEndTime(), indicatorSeries.getEndIndex() - 1, iValue.doubleValue());
-//                }
-//            }
-//        }
-
-//    if (preIndex==series.getEndIndex()) System.out.println("HIBA------------------------");
-//        preIndex=series.getEndIndex();
 
     }
 
 
     public void onOneMinuteDataEvent() {
 //        System.out.println(symbol+" "+series.getCurrentTime());
-//        if (preZdt==series.getCurrentTime()) System.out.println("HIBA------------------------");
-//        preZdt=series.getCurrentTime();
-//        System.out.println(new SimpleDateFormat("mm:ss:SSS").format(new Date())+" Keltner onOneMinuteDataEvent------------- START"+eventSeries.timeFrame);
-//        try {
-//            Thread.sleep(6000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        System.out.println(new SimpleDateFormat("mm:ss:SSS").format(new Date())+" Keltner onOneMinuteDataEvent------------- END"+eventSeries.timeFrame);
 
     }
 

@@ -35,13 +35,10 @@ public class Test1 {
 
 //
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
-        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTest.csv","yyyy.MM.dd HH:mm");
-
-        Strategy entry=new KeltnerEntry(4,timeSeriesRepo);
-        Strategy exit=new KeltnerExit(4,timeSeriesRepo);
+        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
 
         long startTime = System.currentTimeMillis();
-        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,entry,exit,null, TradeEngine.LogLevel.BASIC);
+        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.BASIC);
         System.out.println(tradeEngine.series.getSymbol());
 //
         tradeEngine.initStrategy();
