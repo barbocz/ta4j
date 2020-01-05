@@ -113,7 +113,7 @@ public class IsRisingRule extends AbstractRule {
 
 		final boolean satisfied = ratio >= minStrenght;
 		//traceIsSatisfied(index, satisfied);
-		getCore().debugRule(index,this,satisfied);
+//		getCore().debugRule(index,this,satisfied);
 		return satisfied;
 	}
 }

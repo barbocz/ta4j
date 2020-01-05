@@ -36,7 +36,7 @@ public class VolumeIndicator extends CachedIndicator<Num> {
     private int barCount;
 
     public VolumeIndicator(TimeSeries series) {
-        this(series, 1);
+        this(series, 0);
     }
 
     public VolumeIndicator(TimeSeries series, int barCount) {
@@ -46,11 +46,14 @@ public class VolumeIndicator extends CachedIndicator<Num> {
 
     @Override
     protected Num calculate(int index) {
-        int startIndex = Math.max(0, index - barCount + 1);
-        Num sumOfVolume = numOf(0);
-        for (int i = startIndex; i <= index; i++) {
-            sumOfVolume = sumOfVolume.plus(getTimeSeries().getBar(i).getVolume());
+        if (barCount==0)  return getTimeSeries().getBar(index).getVolume();
+        else {
+            int startIndex = Math.max(0, index - barCount + 1);
+            Num sumOfVolume = numOf(0);
+            for (int i = startIndex; i <= index; i++) {
+                sumOfVolume = sumOfVolume.plus(getTimeSeries().getBar(i).getVolume());
+            }
+            return sumOfVolume;
         }
-        return sumOfVolume;
     }
 }

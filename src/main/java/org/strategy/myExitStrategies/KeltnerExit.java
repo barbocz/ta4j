@@ -40,11 +40,11 @@ public class KeltnerExit extends Strategy  {
         keltnerChannelLowerIndicator = new KeltnerChannelLowerIndicator(keltnerChannelMiddleIndicator, 3.4, 34);
 
         HighPriceIndicator highPriceIndicator=new HighPriceIndicator(tradeEngine.series);
-        highestValueIndicator=new HighestValueIndicator(highPriceIndicator,16);
+        highestValueIndicator=new HighestValueIndicator(highPriceIndicator,89);
 
 
         LowPriceIndicator lowPriceIndicator=new LowPriceIndicator(tradeEngine.series);
-        lowestValueIndicator=new LowestValueIndicator(lowPriceIndicator,16);
+        lowestValueIndicator=new LowestValueIndicator(lowPriceIndicator,89);
 
         atrIndicator=new ATRIndicator(tradeEngine.series,16);
 
@@ -104,16 +104,16 @@ public class KeltnerExit extends Strategy  {
 
                         tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
 //                        tradeEngine.setExitPrice(order, keltnerChannelLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-                        tradeEngine.setExitPrice(order, lowestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue() - 2* atrIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
+                        tradeEngine.setExitPrice(order, lowestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue() - 0.0 * atrIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
 
                     } else {
                         tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
 //                        tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-                        tradeEngine.setExitPrice(order, highestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue()+2* atrIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
+                        tradeEngine.setExitPrice(order, highestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue()+ 0.0 * atrIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
                     }
 
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 33)
+                    if (tradeEngine.series.getCurrentIndex() - openIndex > 12)
                         tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
                 } else {
                     if (order.type == Order.Type.BUY) {
@@ -121,6 +121,10 @@ public class KeltnerExit extends Strategy  {
                     } else {
                         tradeEngine.setExitPrice(order, keltnerChannelLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
                     }
+
+                    int openIndex = tradeEngine.series.getIndex(order.openTime);
+                    if (tradeEngine.series.getCurrentIndex() - openIndex > 12)
+                        tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
 
                 }
 

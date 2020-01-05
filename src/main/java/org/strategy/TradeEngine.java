@@ -212,13 +212,13 @@ public class TradeEngine {
             if (exitPrice > timeSeriesRepo.bid && (exitMode == ExitMode.TAKEPROFIT || exitMode == ExitMode.ANY)) {
                 if (order.takeProfit == 0.0) setTakeProfit = true;
                 else if (conservativeMode && exitPrice < order.takeProfit)
-                    setTakeProfit = true;   // konzervatív mód esetén csak közelebbi takeprofit szint lehet
+                    setTakeProfit = true;   // konzervatív mód esetén az előzőleg beálított takeProfit-nál csak közelebbi takeProfit szint állítható
                 else if (!conservativeMode && exitPrice > order.takeProfit)
-                    setTakeProfit = true;  // agresszív mód esetén csak távolabbi takeprofit szint lehet
+                    setTakeProfit = true;  // agresszív mód esetén az előzőleg beálított takeProfit-nál csak távolabbi takeProfit szint állítható
             } else if (exitPrice <= timeSeriesRepo.bid && (exitMode == ExitMode.STOPLOSS || exitMode == ExitMode.ANY)) {
                 if (order.stopLoss == 0.0) setStopLoss = true;
-                else if (conservativeMode && exitPrice > order.stopLoss) setStopLoss = true;
-                else if (!conservativeMode && exitPrice < order.stopLoss) setStopLoss = true;
+                else if (conservativeMode && exitPrice > order.stopLoss) setStopLoss = true;  // konzervatív mód esetén az előzőleg beálított stopLoss-nál csak közelebbi stopLoss szint állítható
+                else if (!conservativeMode && exitPrice < order.stopLoss) setStopLoss = true; // agresszív mód esetén az előzőleg beálított stopLoss-nál csak távolabbi stopLoss szint állítható
             }
         } else {
             if (exitPrice < timeSeriesRepo.ask && (exitMode == ExitMode.TAKEPROFIT || exitMode == ExitMode.ANY)) {
@@ -400,7 +400,7 @@ public class TradeEngine {
 
         if (logLevel != LogLevel.NONE) logStrategy.setAutoCommit(true);
 
-        if (logLevel.ordinal() > TradeEngine.LogLevel.NONE.ordinal()) logStrategy.getMT4data(logStrategy.id);
+        if (logLevel.ordinal() > LogLevel.BASIC.ordinal()) logStrategy.getMT4data(logStrategy.id);
 
 
     }

@@ -43,9 +43,9 @@ public class MoneyFlowIndicator extends CachedIndicator<Num> {
     private HighPriceIndicator highPriceIndicator;
     private LowPriceIndicator lowPriceIndicator;
     private ClosePriceIndicator closePriceIndicator;
-    private AmountIndicator amountIndicator;
-
     private VolumeIndicator volumeIndicator;
+
+
 
     private int barCount;
 
@@ -58,7 +58,7 @@ public class MoneyFlowIndicator extends CachedIndicator<Num> {
         this.highPriceIndicator=new HighPriceIndicator(series);
         this.lowPriceIndicator=new LowPriceIndicator(series);
         this.closePriceIndicator=new ClosePriceIndicator(series);
-        this.amountIndicator=new AmountIndicator(series);
+        this.volumeIndicator=new VolumeIndicator(series);
 
 
     }
@@ -70,17 +70,18 @@ public class MoneyFlowIndicator extends CachedIndicator<Num> {
         Num dPreviousTP;
         Num dPositiveMF=numOf(0.0);
         Num dNegativeMF=numOf(0.0);
+
         Num dCurrentTP=highPriceIndicator.getValue(index).plus(lowPriceIndicator.getValue(index).plus(closePriceIndicator.getValue(index))).dividedBy(numOf(3.0));
 
         for (int i = index - 1; i >= end; i--) {
 
             dPreviousTP=highPriceIndicator.getValue(i).plus(lowPriceIndicator.getValue(i).plus(closePriceIndicator.getValue(i))).dividedBy(numOf(3.0));
-            if (dCurrentTP.isGreaterThan(dPreviousTP)) dPositiveMF=dPositiveMF.plus(amountIndicator.getValue(i).multipliedBy(dCurrentTP));
-            else if (dCurrentTP.isLessThan(dPreviousTP)) dNegativeMF=dNegativeMF.plus(amountIndicator.getValue(i).multipliedBy(dCurrentTP));
+
+            if (dCurrentTP.isGreaterThan(dPreviousTP)) dPositiveMF=dPositiveMF.plus(volumeIndicator.getValue(i+1).multipliedBy(dCurrentTP));
+            else if (dCurrentTP.isLessThan(dPreviousTP)) dNegativeMF=dNegativeMF.plus(volumeIndicator.getValue(i+1).multipliedBy(dCurrentTP));
             dCurrentTP=dPreviousTP;
         }
-
-        if (!dNegativeMF.isEqual(numOf(0.0))) return numOf(100.0).minus(numOf(100.0).dividedBy(numOf(1.0).plus(dPositiveMF).dividedBy(dNegativeMF)) );
+        if (!dNegativeMF.isEqual(numOf(0.0))) return numOf(100.0).minus(numOf(100.0).dividedBy(numOf(1.0).plus(dPositiveMF.dividedBy(dNegativeMF))) );
         else return numOf(100.0);
 
 
