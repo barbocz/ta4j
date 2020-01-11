@@ -2,9 +2,8 @@ package org.strategy.myEntryStrategies;
 
 import org.strategy.Order;
 import org.strategy.Strategy;
-import org.strategy.TimeSeriesRepo;
 import org.ta4j.core.indicators.CCIIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.ParabolicSarIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
@@ -14,7 +13,7 @@ import org.ta4j.core.num.Num;
 import org.ta4j.core.trading.rules.NotRule;
 import org.ta4j.core.trading.rules.OverIndicatorRule;
 import org.ta4j.core.trading.rules.UnderIndicatorRule;
-import org.ta4j.core.trading.rules.hasOpenOrder;
+import org.ta4j.core.trading.rules.OrderConditionRule;
 
 import java.awt.*;
 import java.time.ZonedDateTime;
@@ -27,7 +26,7 @@ public class KeltnerEntry_v2 extends Strategy {
     KeltnerChannelUpperIndicator kcU;
     KeltnerChannelLowerIndicator kcL;
 
-    public KeltnerEntry_v2(Integer timeFrame, TimeSeriesRepo timeSeriesRepo) {
+    public KeltnerEntry_v2() {
 
 
 
@@ -51,8 +50,8 @@ public class KeltnerEntry_v2 extends Strategy {
 
 
         KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 54);
-        kcU = new KeltnerChannelUpperIndicator(kcM, 2.6, 54);
-        kcL = new KeltnerChannelLowerIndicator(kcM, 2.6, 54);
+        kcU = new KeltnerChannelUpperIndicator(kcM, 3, 54);
+        kcL = new KeltnerChannelLowerIndicator(kcM, 3, 54);
 
 //        KeltnerChannelMiddleIndicator kcM8 = new KeltnerChannelMiddleIndicator(tradeEngine.getTimeSeries(60), 34);
 //        KeltnerChannelUpperIndicator kcU8 = new KeltnerChannelUpperIndicator(kcM8, 3.4, 34);
@@ -70,7 +69,7 @@ public class KeltnerEntry_v2 extends Strategy {
         Num cciUpperLimit = tradeEngine.series.numOf(250);
         Num cciLowerLimit = tradeEngine.series.numOf(-250);
 
-        EMAIndicator emaIndicator=new EMAIndicator(closePrice,3);
+        ParabolicSarIndicator parabolicSarIndicator=new ParabolicSarIndicator(tradeEngine.series,tradeEngine.series.numOf(0.08),tradeEngine.series.numOf(1));
 
 //        MoneyFlowIndicator moneyFlowIndicator=new MoneyFlowIndicator(tradeEngine.series,8);
 
@@ -87,10 +86,10 @@ public class KeltnerEntry_v2 extends Strategy {
 
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU8, 3));
         ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcM));
-        ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.4, 8));
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 95, 8));
+        ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.4, 10));
+        ruleForSell = ruleForSell.and(new OverIndicatorRule(parabolicSarIndicator,closePrice));
 //        ruleForSell = ruleForSell.and(new IsFallingRule(emaIndicator, 1, 1.0));
-        ruleForSell = ruleForSell.and(new NotRule(new hasOpenOrder(tradeEngine)));
+        ruleForSell = ruleForSell.and(new NotRule(new OrderConditionRule(tradeEngine)));
 
 //        ruleForSell = ruleForSell.or(new OverIndicatorRule(cciIndicator,tradeEngine.series.numOf(220)).
 //                and(new hasOpenOrder(tradeEngine, hasOpenOrder.OpenedOrderType.ONLY_SELL)).and(new UnderIndicatorRule(closePrice,kcU)));
@@ -104,10 +103,11 @@ public class KeltnerEntry_v2 extends Strategy {
 
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL8, 3     ));
         ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcM));
-        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.4, 8));
+        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.4, 10));
+        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(closePrice,parabolicSarIndicator));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(moneyFlowIndicator, 5, 8));
 //        ruleForBuy = ruleForBuy.and(new IsRisingRule(emaIndicator, 1, 1.0));
-        ruleForBuy = ruleForBuy.and(new NotRule(new hasOpenOrder(tradeEngine)));
+        ruleForBuy = ruleForBuy.and(new NotRule(new OrderConditionRule(tradeEngine)));
 //        ruleForBuy = ruleForBuy.or(new UnderIndicatorRule(cciIndicator,tradeEngine.series.numOf(-220)).
 //                and(new hasOpenOrder(tradeEngine, hasOpenOrder.OpenedOrderType.ONLY_BUY)).and(new OverIndicatorRule(closePrice,kcL)));
 
@@ -123,8 +123,8 @@ public class KeltnerEntry_v2 extends Strategy {
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);
 
-        emaIndicator.indicatorColor=Color.RED;
-        tradeEngine.log(emaIndicator);
+        parabolicSarIndicator.indicatorColor=Color.RED;
+        tradeEngine.log(parabolicSarIndicator);
 
         kcU.indicatorColor=Color.WHITE;
         tradeEngine.log(kcU);

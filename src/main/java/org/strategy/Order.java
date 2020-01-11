@@ -103,7 +103,7 @@ public class Order implements Cloneable {
 
     public double getClosedProfit() {
         if (type == Order.Type.BUY) profit = (closePrice - openPrice) * closedAmount;
-        else profit = (openPrice - closePrice) * openedAmount;
+        else profit = (openPrice - closePrice) * closedAmount;
         return profit;
     }
 }

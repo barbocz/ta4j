@@ -224,6 +224,23 @@ public class TradeCenter {
 
     }
 
+    public void updateBalance(int strategyID, double balance){
+        int index = 0;
+        for (TradingCoreData strategy : tradingStrategiesObservableList) {
+            if (strategy.getId()== strategyID) {
+                strategy.setInfo(String.valueOf(balance));
+                tradingStrategiesObservableList.set(index, strategy);
+                tradingCoreDataTableView.setItems(tradingStrategiesObservableList);
+
+                break;
+            }
+            index++;
+        }
+
+//        tradingStrategiesObservableList.add(new TradingCoreData(tradeEngine.logStrategy.id,key, entryStrategyName.getText(), exitStrategyName.getText(), "info"));
+//        tradingCoreDataTableView.setItems(tradingStrategiesObservableList);
+    }
+
     public void updateTimeSeriesRepo(int portNumber, String message) {
 //        System.out.println(portNumber+" port, message:  "+message);
         int index = 0;
@@ -405,6 +422,7 @@ public class TradeCenter {
                     new Runnable() {
                         public void run() {
                             try {
+
                                 TimeSeriesRepo timeSeriesRepo=timeSeriesRepos.get(symbol);
                                 Class<?> clazz = Class.forName("org.strategy.myEntryStrategies." + entryStrategyName.getText());
                                 Constructor<?> constructor = clazz.getConstructor();
@@ -414,7 +432,7 @@ public class TradeCenter {
                                 Strategy exitStrategy = (Strategy) constructor.newInstance();
 ////                                TradeEngine tradeEngine = new TradeEngine(key, entryStrategy, exitStrategy, controller);
                                 timeSeriesRepo.processType= TimeSeriesRepo.ProcessType.MT4;
-                                TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,timeFrame,entryStrategy,exitStrategy,null,TradeEngine.LogLevel.TOTAL);
+                                TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,timeFrame,entryStrategy,exitStrategy,controller,TradeEngine.LogLevel.TOTAL);
                                 tradeEngine.initStrategy();
 //
 ////                                TradeEngine tradeEn = (TradeEngine)constructor.newInstance(key,Integer.parseInt(period.getText()), timeSeriesRepos.get(symbol.getText()),controller);

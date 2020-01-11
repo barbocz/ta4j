@@ -26,24 +26,20 @@ package org.ta4j.core.trading.rules;
 import org.strategy.Order;
 import org.strategy.TradeEngine;
 import org.ta4j.core.Bar;
-import org.ta4j.core.BaseTradingRecord;
-import org.ta4j.core.TradingRecord;
-import org.ta4j.core.extendedCore.BaseTradingRecordExtended;
 
 import java.time.ZonedDateTime;
-
-import static org.ta4j.core.Order.OrderType;
 
 /**
  * A {@link org.ta4j.core.Rule} which waits for a number of {@link Bar} after an order.
  * </p>
  * Satisfied after a fixed number of bars since the last order.
  */
-public class hasOpenOrder extends AbstractRule {
+public class OrderConditionRule extends AbstractRule {
 
-    OpenedOrderType openedOrderType;
+    AllowedOrderType openedOrderType;
+    int lastOrderIndexDifference = 0;
 
-    public enum OpenedOrderType {
+    public enum AllowedOrderType {
         ONLY_BUY,
         ONLY_SELL,
         BOTH
@@ -59,28 +55,54 @@ public class hasOpenOrder extends AbstractRule {
 
     TradeEngine tradeEngine;
 
-    public hasOpenOrder(TradeEngine tradeEngine) {
-        this.tradeEngine=tradeEngine;
-        openedOrderType=OpenedOrderType.BOTH;
+    public OrderConditionRule(TradeEngine tradeEngine) {
+        this.tradeEngine = tradeEngine;
+        openedOrderType = AllowedOrderType.BOTH;
     }
 
-    public hasOpenOrder(TradeEngine tradeEngine,OpenedOrderType openedOrderType) {
-        this.tradeEngine=tradeEngine;
-        this.openedOrderType=openedOrderType;
+    public OrderConditionRule(TradeEngine tradeEngine, AllowedOrderType openedOrderType, int lastOrderIndexDifference) {
+        this.tradeEngine = tradeEngine;
+        this.openedOrderType = openedOrderType;
+        this.lastOrderIndexDifference = lastOrderIndexDifference;
+    }
+
+    public OrderConditionRule(TradeEngine tradeEngine, AllowedOrderType openedOrderType) {
+        this.tradeEngine = tradeEngine;
+        this.openedOrderType = openedOrderType;
     }
 
     @Override
-    public boolean isSatisfied (ZonedDateTime time) {
+    public boolean isSatisfied(ZonedDateTime time) {
 //        final boolean satisfied = !getCore().hasOpenOrders();
 //        getCore().debugRule(index,this,satisfied);
-        if (tradeEngine.openedOrders.size()==0) return false;
-        if (openedOrderType==OpenedOrderType.BOTH) return true;
-        else {
-            for (Order order: tradeEngine.openedOrders){
-                if (order.type== Order.Type.BUY && openedOrderType==OpenedOrderType.ONLY_SELL) return false;
-                if (order.type== Order.Type.SELL && openedOrderType==OpenedOrderType.ONLY_BUY) return false;
+
+//        if (tradeEngine.openedOrders.size() == 0) return false;
+        if (openedOrderType != AllowedOrderType.BOTH) {
+            for (Order order : tradeEngine.openedOrders) {
+                if (order.type == Order.Type.BUY && openedOrderType == AllowedOrderType.ONLY_SELL) return false;
+                if (order.type == Order.Type.SELL && openedOrderType == AllowedOrderType.ONLY_BUY) return false;
+
             }
         }
+
+//        if (tradeEngine.lastSellOrder != null && tradeEngine.lastSellOrder.id==3204) {
+//            System.out.println("break");
+//            double prof=tradeEngine.lastSellOrder.getClosedProfit();
+//            int oi=tradeEngine.series.getIndex(tradeEngine.lastSellOrder.openTime);
+//
+//        }
+
+
+        if (lastOrderIndexDifference > 0) {
+            int currentIndex = tradeEngine.series.getIndex(time);
+
+            if (tradeEngine.lastBuyOrder != null && tradeEngine.lastBuyOrder.getClosedProfit()<0.0 && currentIndex - tradeEngine.series.getIndex(tradeEngine.lastBuyOrder.openTime) < lastOrderIndexDifference)
+                return false;
+            if (tradeEngine.lastSellOrder != null && tradeEngine.lastSellOrder.getClosedProfit()<0.0 && currentIndex - tradeEngine.series.getIndex(tradeEngine.lastSellOrder.openTime) < lastOrderIndexDifference)
+                return false;
+
+        }
+
 
         return true;
     }

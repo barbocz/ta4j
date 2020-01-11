@@ -36,11 +36,20 @@ public class LowestValueIndicator extends CachedIndicator<Num> {
     private final Indicator<Num> indicator;
 
     private final int barCount;
+    private final int barShift;
+
+    public LowestValueIndicator(Indicator<Num> indicator, int barCount, int barShift) {
+        super(indicator);
+        this.indicator = indicator;
+        this.barCount = barCount;
+        this.barShift =barShift;
+    }
 
     public LowestValueIndicator(Indicator<Num> indicator, int barCount) {
         super(indicator);
         this.indicator = indicator;
         this.barCount = barCount;
+        barShift=0;
     }
 
     @Override
@@ -49,8 +58,8 @@ public class LowestValueIndicator extends CachedIndicator<Num> {
             return new LowestValueIndicator(indicator, barCount - 1).getValue(index - 1);
         }
         int end = Math.max(0, index - barCount + 1);
-        Num lowest = indicator.getValue(index);
-        for (int i = index - 1; i >= end; i--) {
+        Num lowest = indicator.getValue(index-barShift);
+        for (int i = index - 1-barShift; i >= end; i--) {
             if (lowest.isGreaterThan(indicator.getValue(i))) {
                 lowest = indicator.getValue(i);
             }

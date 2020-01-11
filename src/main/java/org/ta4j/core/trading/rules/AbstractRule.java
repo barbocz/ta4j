@@ -140,6 +140,11 @@ public abstract class AbstractRule implements Rule {
         return ruleItems;
     }
 
+    public List<Rule> getRuleSet() {
+        return ruleSet;
+    }
+
+
     @Override
     public void setCore(Core core){
         this.core=core;

@@ -36,11 +36,20 @@ public class HighestValueIndicator extends CachedIndicator<Num> {
     private final Indicator<Num> indicator;
 
     private final int barCount;
+    private final int barShift;
+
+    public HighestValueIndicator(Indicator<Num> indicator, int barCount, int barShift) {
+        super(indicator);
+        this.indicator = indicator;
+        this.barCount = barCount;
+        this.barShift =barShift;
+    }
 
     public HighestValueIndicator(Indicator<Num> indicator, int barCount) {
         super(indicator);
         this.indicator = indicator;
         this.barCount = barCount;
+        barShift=0;
     }
 
     @Override
@@ -49,8 +58,8 @@ public class HighestValueIndicator extends CachedIndicator<Num> {
             return new HighestValueIndicator(indicator, barCount - 1).getValue(index - 1);
         }
         int end = Math.max(0, index - barCount + 1);
-        Num highest = indicator.getValue(index);
-        for (int i = index - 1; i >= end; i--) {
+        Num highest = indicator.getValue(index-barShift);
+        for (int i = index - 1-barShift; i >= end; i--) {
             if (highest.isLessThan(indicator.getValue(i))) {
                 highest = indicator.getValue(i);
             }

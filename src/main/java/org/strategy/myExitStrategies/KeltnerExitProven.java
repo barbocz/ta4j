@@ -10,7 +10,7 @@ import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
 
 
-public class KeltnerExit extends Strategy {
+public class KeltnerExitProven extends Strategy {
     KeltnerChannelMiddleIndicator keltnerChannelMiddleIndicator;
     KeltnerChannelUpperIndicator keltnerChannelUpperIndicator;
     KeltnerChannelLowerIndicator keltnerChannelLowerIndicator;
@@ -18,7 +18,7 @@ public class KeltnerExit extends Strategy {
     LowestValueIndicator lowestValueIndicator;
     ATRIndicator atrIndicator;
 
-    public KeltnerExit() {
+    public KeltnerExitProven() {
 
 
     }
@@ -91,7 +91,7 @@ public class KeltnerExit extends Strategy {
         if (tradeEngine.timeFrame == timeFrame) {
             double atrValueCorrection =  atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
             double atrValueLimit = 5.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-            double atrStopLoss = 1 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
+            double atrStopLoss = 1.3 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
             for (Order order : tradeEngine.openedOrders) {
 
                 if (order.closePhase == 0) {
@@ -115,7 +115,7 @@ public class KeltnerExit extends Strategy {
                     }
 
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 21)
+                    if (tradeEngine.series.getCurrentIndex() - openIndex > 34)
                         tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
                 } else {
                     if (order.type == Order.Type.BUY) {
@@ -125,7 +125,7 @@ public class KeltnerExit extends Strategy {
                     }
 
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 21)
+                    if (tradeEngine.series.getCurrentIndex() - openIndex > 34)
                         tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
 
                 }

@@ -8,13 +8,12 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
-import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.trading.rules.NotRule;
 import org.ta4j.core.trading.rules.OverIndicatorRule;
 import org.ta4j.core.trading.rules.UnderIndicatorRule;
-import org.ta4j.core.trading.rules.hasOpenOrder;
+import org.ta4j.core.trading.rules.OrderConditionRule;
 
 import java.awt.*;
 import java.time.ZonedDateTime;
@@ -58,13 +57,13 @@ public class TestEntry extends Strategy {
         ruleForSell = new OverIndicatorRule(closePrice, kcU, 8);
         ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcM));
         ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.2, 8));
-        ruleForSell = ruleForSell.and(new NotRule(new hasOpenOrder(tradeEngine)));
+        ruleForSell = ruleForSell.and(new NotRule(new OrderConditionRule(tradeEngine)));
 
 
         ruleForBuy = new UnderIndicatorRule(closePrice, kcL, 8);
         ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcM));
         ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.2, 8));
-        ruleForBuy = ruleForBuy.and(new NotRule(new hasOpenOrder(tradeEngine)));
+        ruleForBuy = ruleForBuy.and(new NotRule(new OrderConditionRule(tradeEngine)));
 
 
 

@@ -1,5 +1,6 @@
 package org.strategy;
 
+import org.ta4j.core.Bar;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
 import org.ta4j.core.TimeSeries;
@@ -8,12 +9,14 @@ import org.ta4j.core.num.Num;
 import java.io.*;
 import java.nio.file.*;
 import java.sql.*;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
+import java.text.*;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -226,7 +229,7 @@ public class LogStrategy {
         Object indicatorValue;
         for (Indicator indicator : indicatorsForLog) {
             TimeSeries indicatorSeries = indicator.getTimeSeries();
-//            if (indicatorSeries.getPeriod() != timeFrame) continue;
+            if (indicatorSeries.getPeriod() != timeFrame) continue;
             int index = indicatorSeries.getIndex(logTime);
 //                Num indicatorValue1 = (Num) indicator.getValue(index);
 //                tradeEngine.info=timeFrame+", "+indicator.getClass().getSimpleName()+",  "+logTime.toString()+", "+index;
@@ -875,6 +878,45 @@ public class LogStrategy {
         } catch (IOException ex) {
             System.err.format("I/O Error when copying file "+sourceFile+" to "+targetFile);
         }
+    }
+
+    public void getProfitByMonth(int strategyId){
+
+        HashMap<String ,Double> profits=new HashMap<>();
+        ZonedDateTime zdt;
+        String key;
+        Double profit;
+        try {
+            Statement statement = dbConnection.createStatement();
+            ResultSet resultSet = statement.executeQuery("select * from STRATEGY_TRADE_HISTORY where STRATEGY_ID="+strategyId+" order by ORDER_ID");
+            while (resultSet.next()) {
+                try {
+                    if (resultSet.getString("CLOSE_TIME")==null) continue;
+//                    System.out.println(resultSet.getString("CLOSE_TIME"));
+
+                    zdt = ZonedDateTime.parse(resultSet.getString("CLOSE_TIME"), dateTimeFormatter.withZone(ZoneId.systemDefault()));
+                    key=zdt.getYear()+" "+zdt.getMonth();
+                    if (profits.containsKey(key)) {
+                        profits.replace(key,profits.get(key)+resultSet.getDouble("PROFIT"));
+                    } else profits.put(key, resultSet.getDouble("PROFIT"));
+//                    dateFormatter.parse(ohlcv.get(firstRowIndex)[0]).toInstant()
+//
+//                    ZonedDateTime zdt = dateFormatter.parse(resultSet.getString("CLOSE_TIME")).toInstant();
+                } catch (Exception e) {
+                    // ... handle parsing exception
+                }
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        for (String month: profits.keySet()){
+            System.out.println(month+":  "+profits.get(month));
+        }
+
+
     }
 
 }

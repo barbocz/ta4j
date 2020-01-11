@@ -30,7 +30,9 @@ import org.ta4j.core.trading.rules.OrRule;
 import org.ta4j.core.trading.rules.XorRule;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * A rule for strategy building.
@@ -57,6 +59,7 @@ public interface Rule {
     default String getParameters() {return "";}
 
     default HashMap<Integer,String> getRuleItems() {return new HashMap<>();}
+    default List<Rule> getRuleSet() {return new ArrayList<>();}
 
     /**
      * @param rule another trading rule

@@ -1,10 +1,12 @@
 package org.strategy;
 
+import javafx.application.Platform;
 import org.ta4j.core.Bar;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
 import org.ta4j.core.TimeSeries;
 import org.ta4j.core.mt4.MT4TimeSeries;
+import org.ta4j.core.trading.rules.BooleanRule;
 import org.test.TradeCenter;
 
 import java.time.ZonedDateTime;
@@ -24,7 +26,7 @@ public class TradeEngine {
     public List<Integer> timeFrames = new ArrayList<>();
 
     public TimeSeries series;
-    public int timeFrame;
+    public int timeFrame,currentBarIndex;
 
 
     public boolean islogged = false, backtestMode = false, detailedLogMode = true;
@@ -45,6 +47,7 @@ public class TradeEngine {
     //    public List<Rule> rulesForLog=new ArrayList<>();
     public Strategy entryStrategy, exitStrategy;
     public ZonedDateTime currentTradeTime;
+    public Order lastBuyOrder=null,lastSellOrder=null;
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
     DateTimeFormatter simpleDateFormatter = DateTimeFormatter.ofPattern("MM.dd HH:mm");
 
@@ -52,6 +55,8 @@ public class TradeEngine {
     public int orderIndex = 0;
 
     public LogStrategy logStrategy;
+
+    private final TradeCenter tradeCenter;
 
     public enum ExitMode {
         TAKEPROFIT,
@@ -79,6 +84,7 @@ public class TradeEngine {
         this.exitStrategy = exitStrategy;
         this.timeFrame = timeFrame;
         this.timeSeriesRepo = timeSeriesRepo;
+        this.tradeCenter=controller;
         symbol = timeSeriesRepo.symbol;
 
         series = getTimeSeries(timeFrame);
@@ -90,6 +96,8 @@ public class TradeEngine {
         logStrategy = new LogStrategy(this);
         timeSeriesRepo.tradeEngines.add(this);
 
+        entryStrategy.ruleForBuy=new BooleanRule(false);
+        entryStrategy.ruleForSell=new BooleanRule(false);
         entryStrategy.tradeEngine = this;
         entryStrategy.init();
 
@@ -98,10 +106,13 @@ public class TradeEngine {
             exitStrategy.init();
         }
 
+
         entryStrategy.ruleForBuy.setTradeEngine(this);
         entryStrategy.ruleForBuy.setTradeEngineForAllRule(entryStrategy.ruleForBuy);
+
         entryStrategy.ruleForSell.setTradeEngine(this);
         entryStrategy.ruleForSell.setTradeEngineForAllRule(entryStrategy.ruleForSell);
+
 
         if (exitStrategy.ruleForBuy != null) {
             exitStrategy.ruleForBuy.setTradeEngine(this);
@@ -123,6 +134,8 @@ public class TradeEngine {
         equityMinimum = initialBalance;
 //        setLogOn();
 
+
+
     }
 
 
@@ -136,6 +149,10 @@ public class TradeEngine {
         order.id = orderIndex;
         order.barIndex = series.getCurrentIndex();
         order.openedAmount = initialAmount;
+
+        if (order.type == Order.Type.BUY) lastBuyOrder=order;
+        if (order.type == Order.Type.SELL) lastSellOrder=order;
+
         if (logLevel != LogLevel.NONE) logStrategy.logTrade(true, order);
 
         orderIndex++;
@@ -154,10 +171,12 @@ public class TradeEngine {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 //        System.out.println("te onBarChangeEvent");
+        currentBarIndex=series.getCurrentIndex();
+        if (backtestMode) currentBarIndex = currentBarIndex -1;
 
 
-        exitStrategy.onBarChangeEvent(timeFrame);
         entryStrategy.onBarChangeEvent(timeFrame);
+        exitStrategy.onBarChangeEvent(timeFrame);
 
 
         if (logLevel != LogLevel.NONE) logStrategy.onBarChangeEvent(timeFrame);
@@ -320,7 +339,17 @@ public class TradeEngine {
                 if (logLevel != LogLevel.NONE) logStrategy.logTrade(true, order);
                 orderIndex++;
             }
-            ;
+
+            if (tradeCenter!=null) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        tradeCenter.updateBalance(logStrategy.id, balance);
+                    }
+                });
+            }
+
         }
 
 
@@ -401,6 +430,8 @@ public class TradeEngine {
         if (logLevel != LogLevel.NONE) logStrategy.setAutoCommit(true);
 
         if (logLevel.ordinal() > LogLevel.BASIC.ordinal()) logStrategy.getMT4data(logStrategy.id);
+
+        logStrategy.getProfitByMonth(logStrategy.id);
 
 
     }

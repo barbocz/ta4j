@@ -5,6 +5,7 @@ import org.strategy.Strategy;
 import org.strategy.TimeSeriesRepo;
 import org.strategy.TradeEngine;
 import org.ta4j.core.indicators.ATRIndicator;
+import org.ta4j.core.indicators.ParabolicSarIndicator;
 import org.ta4j.core.indicators.helpers.*;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
@@ -19,8 +20,9 @@ public class KeltnerExit_v2 extends Strategy  {
     HighestValueIndicator highestValueIndicator;
     LowestValueIndicator lowestValueIndicator;
     ATRIndicator atrIndicator;
+    ParabolicSarIndicator parabolicSarIndicator;
 
-    public KeltnerExit_v2(Integer timeFrame, TimeSeriesRepo timeSeriesRepo) {
+    public KeltnerExit_v2() {
 
 
         // log:
@@ -50,6 +52,7 @@ public class KeltnerExit_v2 extends Strategy  {
         lowestValueIndicator=new LowestValueIndicator(lowPriceIndicator,89);
 
         atrIndicator=new ATRIndicator(tradeEngine.series,16);
+        parabolicSarIndicator=new ParabolicSarIndicator(tradeEngine.series,tradeEngine.series.numOf(0.08),tradeEngine.series.numOf(1));
 
 
 
@@ -84,17 +87,17 @@ public class KeltnerExit_v2 extends Strategy  {
 
     @Override
     public void onExitEvent(Order order){
-        if (order.closePhase==0 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid)>0.0) {
-            order.closedAmount = order.openedAmount / 2.0;
-            order.closePhase = 1;
-            if (order.type == Order.Type.BUY) {
-                tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, false);
-            } else {
-                tradeEngine.setExitPrice(order, keltnerChannelLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, false);
-            }
-            tradeEngine.setExitPrice(order, order.openPrice , TradeEngine.ExitMode.STOPLOSS, false);
-        } else order.closedAmount = order.openedAmount;
-
+//        if (order.closePhase==0 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid)>0.0) {
+//            order.closedAmount = order.openedAmount / 2.0;
+//            order.closePhase = 1;
+//            if (order.type == Order.Type.BUY) {
+//                tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, false);
+//            } else {
+//                tradeEngine.setExitPrice(order, keltnerChannelLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, false);
+//            }
+//            tradeEngine.setExitPrice(order, order.openPrice , TradeEngine.ExitMode.STOPLOSS, false);
+//        } else order.closedAmount = order.openedAmount;
+        order.closedAmount = order.openedAmount;
     }
 
     public void onBarChangeEvent(int timeFrame) throws Exception{
@@ -102,34 +105,23 @@ public class KeltnerExit_v2 extends Strategy  {
         if (tradeEngine.timeFrame == timeFrame) {
             for (Order order : tradeEngine.openedOrders) {
 
-                if (order.closePhase==0) {
+
                     if (order.type == Order.Type.BUY) {
 
-                        tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
+//                        tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
 //                        tradeEngine.setExitPrice(order, keltnerChannelLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-                        tradeEngine.setExitPrice(order, lowestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue() - 0.0 * atrIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
+                        tradeEngine.setExitPrice(order, parabolicSarIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
 
                     } else {
-                        tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
+//                        tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
 //                        tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-                        tradeEngine.setExitPrice(order, highestValueIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue()+ 0.0 * atrIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
+                        tradeEngine.setExitPrice(order, parabolicSarIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
                     }
 
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 12)
-                        tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
-                } else {
-                    if (order.type == Order.Type.BUY) {
-                        tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-                    } else {
-                        tradeEngine.setExitPrice(order, keltnerChannelLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-                    }
-
-                    int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 12)
+                    if (tradeEngine.series.getCurrentIndex() - openIndex > 34)
                         tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
 
-                }
 
 
 //                if (order.type == Order.Type.BUY) {

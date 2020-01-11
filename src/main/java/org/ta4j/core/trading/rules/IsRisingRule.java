@@ -114,6 +114,15 @@ public class IsRisingRule extends AbstractRule {
 		final boolean satisfied = ratio >= minStrenght;
 		//traceIsSatisfied(index, satisfied);
 //		getCore().debugRule(index,this,satisfied);
+		if (satisfied)  tradeEngine.logStrategy.logRule(this,time,index,satisfied);
 		return satisfied;
+	}
+
+	@Override
+	public String getParameters() {
+		String info=getClass().getSimpleName();
+		info+=" ("+ref.getClass().getSimpleName()+" M"+ref.getTimeSeries().getPeriod()+")";
+		if (barCount>0) info+=" in "+barCount;
+		return info;
 	}
 }

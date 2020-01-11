@@ -4,11 +4,8 @@ import org.strategy.LogStrategy;
 import org.strategy.Strategy;
 import org.strategy.TimeSeriesRepo;
 import org.strategy.TradeEngine;
-import org.strategy.myEntryStrategies.KeltnerEntry;
-import org.strategy.myEntryStrategies.KeltnerEntryWithCCI;
-import org.strategy.myEntryStrategies.TestEntry;
-import org.strategy.myExitStrategies.CCIExit;
-import org.strategy.myExitStrategies.KeltnerExit;
+import org.strategy.myEntryStrategies.*;
+import org.strategy.myExitStrategies.*;
 import org.ta4j.core.Bar;
 import org.ta4j.core.TimeSeries;
 
@@ -35,7 +32,12 @@ public class Test1 {
 
 //
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
-        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
+//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("USDJPY","backTestJPY.csv","yyyy.MM.dd HH:mm");
+//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
+//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
+//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTest.csv","yyyy.MM.dd HH:mm");
+
+        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("GBPUSD","backTestGBP.csv","yyyy.MM.dd HH:mm");
 
         long startTime = System.currentTimeMillis();
         TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.BASIC);

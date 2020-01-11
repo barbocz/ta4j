@@ -132,7 +132,9 @@ public class InSlopeRule extends AbstractRule {
 
         final boolean satisfied = minSlopeSatisfied && maxSlopeSatisfied && !isNaN;
         //traceIsSatisfied(index, satisfied);
-        getCore().debugRule(index,this,satisfied);
+//        getCore().debugRule(index,this,satisfied);
+
+        if (satisfied)  tradeEngine.logStrategy.logRule(this,time,index,satisfied);
         return satisfied;
     }
 }

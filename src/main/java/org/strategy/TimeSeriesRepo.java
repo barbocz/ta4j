@@ -161,7 +161,7 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
                 withDateFormatPattern("dd.MM.yyyy HH:mm:ss.SSS").
                 withNumTypeOf(DoubleNum.class).
                 build();
-        timeSeries.put(1, coreSeries);
+        setTimeSeries(1);
     }
 
     public TimeSeriesRepo(String ohlcvFile, String dateFormatPattern) {
@@ -172,7 +172,7 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
                 withDateFormatPattern(dateFormatPattern).
                 withNumTypeOf(DoubleNum.class).
                 build();
-        timeSeries.put(1, coreSeries);
+        setTimeSeries(1);
     }
 
     public TimeSeriesRepo(String symbol,String ohlcvFile, String dateFormatPattern) {
@@ -185,7 +185,8 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
                 withDateFormatPattern(dateFormatPattern).
                 withNumTypeOf(DoubleNum.class).
                 build();
-        timeSeries.put(1, coreSeries);
+
+        setTimeSeries(1);
     }
 
     public TimeSeriesRepo(MT4TimeSeries MT4series) {
@@ -205,7 +206,8 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
                         build();
 //                if (timeFrame==1) coreSeries=mt4TimeSeries;
             } else {
-                mt4TimeSeries = new MT4TimeSeries.SeriesBuilder().withPeriod(timeFrame).withSymbol(coreSeries.getSymbol()).buildFromSeries(coreSeries);
+                if (timeFrame==1) mt4TimeSeries=coreSeries;
+                else mt4TimeSeries = new MT4TimeSeries.SeriesBuilder().withPeriod(timeFrame).withSymbol(coreSeries.getSymbol()).buildFromSeries(coreSeries);
             }
             mt4TimeSeries.setTimeSeriesRepo(this);  // callback miatt
             timeSeries.put(timeFrame, mt4TimeSeries);
