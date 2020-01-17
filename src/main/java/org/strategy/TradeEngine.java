@@ -1,6 +1,10 @@
 package org.strategy;
 
 import javafx.application.Platform;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.ta4j.core.Bar;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
@@ -8,14 +12,27 @@ import org.ta4j.core.TimeSeries;
 import org.ta4j.core.mt4.MT4TimeSeries;
 import org.ta4j.core.trading.rules.BooleanRule;
 import org.test.TradeCenter;
+import org.zeromq.SocketType;
+import org.zeromq.ZContext;
+import org.zeromq.ZMQ;
 
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 public class TradeEngine {
+    private static final Logger logger = LogManager.getLogger(TradeEngine.class);
+
+    ZContext context;
+    ZMQ.Socket socket;
 
     public String symbol;
     public String info;
@@ -26,7 +43,7 @@ public class TradeEngine {
     public List<Integer> timeFrames = new ArrayList<>();
 
     public TimeSeries series;
-    public int timeFrame,currentBarIndex;
+    public int timeFrame, currentBarIndex;
 
 
     public boolean islogged = false, backtestMode = false, detailedLogMode = true;
@@ -47,7 +64,7 @@ public class TradeEngine {
     //    public List<Rule> rulesForLog=new ArrayList<>();
     public Strategy entryStrategy, exitStrategy;
     public ZonedDateTime currentTradeTime;
-    public Order lastBuyOrder=null,lastSellOrder=null;
+    public Order lastBuyOrder = null, lastSellOrder = null;
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
     DateTimeFormatter simpleDateFormatter = DateTimeFormatter.ofPattern("MM.dd HH:mm");
 
@@ -57,6 +74,8 @@ public class TradeEngine {
     public LogStrategy logStrategy;
 
     private final TradeCenter tradeCenter;
+
+    JSONParser jsonParser = new JSONParser();
 
     public enum ExitMode {
         TAKEPROFIT,
@@ -74,21 +93,30 @@ public class TradeEngine {
     public LogLevel logLevel = LogLevel.NONE;
 
     public TradeEngine(TimeSeriesRepo timeSeriesRepo, int timeFrame, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller, LogLevel logLevel) {
-        this( timeSeriesRepo, timeFrame,entryStrategy, exitStrategy, controller);
+        this(timeSeriesRepo, timeFrame, entryStrategy, exitStrategy, controller);
         this.logLevel = logLevel;
     }
 
-    public TradeEngine( TimeSeriesRepo timeSeriesRepo,int timeFrame, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller) {
+    public TradeEngine(TimeSeriesRepo timeSeriesRepo, int timeFrame, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller) {
 
         this.entryStrategy = entryStrategy;
         this.exitStrategy = exitStrategy;
         this.timeFrame = timeFrame;
         this.timeSeriesRepo = timeSeriesRepo;
-        this.tradeCenter=controller;
+        this.tradeCenter = controller;
         symbol = timeSeriesRepo.symbol;
 
         series = getTimeSeries(timeFrame);
-        System.out.print("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + timeFrame + " timeframe and "+symbol+" instrument");
+
+        if (timeSeriesRepo.processType == TimeSeriesRepo.ProcessType.MT4) {  // MT4 feedelés esetén kinyitni a 6000 portot a trade-ek kezelésére, MT4 oldalon ehhez elindítani a TradeManager EA-t
+            context = new ZContext();
+            socket = context.createSocket(SocketType.REQ);
+            socket.connect("tcp://*:6000");
+            socket.setReceiveTimeOut(1000);
+        }
+
+        System.out.print("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + timeFrame + " timeframe and " + symbol + " instrument");
+        logger.info("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + timeFrame + " timeframe and " + symbol + " instrument");
     }
 
 
@@ -96,8 +124,8 @@ public class TradeEngine {
         logStrategy = new LogStrategy(this);
         timeSeriesRepo.tradeEngines.add(this);
 
-        entryStrategy.ruleForBuy=new BooleanRule(false);
-        entryStrategy.ruleForSell=new BooleanRule(false);
+        entryStrategy.ruleForBuy = new BooleanRule(false);
+        entryStrategy.ruleForSell = new BooleanRule(false);
         entryStrategy.tradeEngine = this;
         entryStrategy.init();
 
@@ -135,10 +163,7 @@ public class TradeEngine {
 //        setLogOn();
 
 
-
     }
-
-
 
 
     //    public abstract void setTradeEngine(Strategy strategy,boolean logOn);
@@ -150,8 +175,10 @@ public class TradeEngine {
         order.barIndex = series.getCurrentIndex();
         order.openedAmount = initialAmount;
 
-        if (order.type == Order.Type.BUY) lastBuyOrder=order;
-        if (order.type == Order.Type.SELL) lastSellOrder=order;
+        if (order.type == Order.Type.BUY) lastBuyOrder = order;
+        if (order.type == Order.Type.SELL) lastSellOrder = order;
+
+        if (mt4TradeIsAllowed()) mt4OpenOrder(order);
 
         if (logLevel != LogLevel.NONE) logStrategy.logTrade(true, order);
 
@@ -171,8 +198,11 @@ public class TradeEngine {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 //        System.out.println("te onBarChangeEvent");
-        currentBarIndex=series.getCurrentIndex();
-        if (backtestMode) currentBarIndex = currentBarIndex -1;
+        currentBarIndex = series.getCurrentIndex();
+        if (backtestMode) currentBarIndex = currentBarIndex - 1;
+        else {
+
+        }
 
 
         entryStrategy.onBarChangeEvent(timeFrame);
@@ -236,8 +266,10 @@ public class TradeEngine {
                     setTakeProfit = true;  // agresszív mód esetén az előzőleg beálított takeProfit-nál csak távolabbi takeProfit szint állítható
             } else if (exitPrice <= timeSeriesRepo.bid && (exitMode == ExitMode.STOPLOSS || exitMode == ExitMode.ANY)) {
                 if (order.stopLoss == 0.0) setStopLoss = true;
-                else if (conservativeMode && exitPrice > order.stopLoss) setStopLoss = true;  // konzervatív mód esetén az előzőleg beálított stopLoss-nál csak közelebbi stopLoss szint állítható
-                else if (!conservativeMode && exitPrice < order.stopLoss) setStopLoss = true; // agresszív mód esetén az előzőleg beálított stopLoss-nál csak távolabbi stopLoss szint állítható
+                else if (conservativeMode && exitPrice > order.stopLoss)
+                    setStopLoss = true;  // konzervatív mód esetén az előzőleg beálított stopLoss-nál csak közelebbi stopLoss szint állítható
+                else if (!conservativeMode && exitPrice < order.stopLoss)
+                    setStopLoss = true; // agresszív mód esetén az előzőleg beálított stopLoss-nál csak távolabbi stopLoss szint állítható
             }
         } else {
             if (exitPrice < timeSeriesRepo.ask && (exitMode == ExitMode.TAKEPROFIT || exitMode == ExitMode.ANY)) {
@@ -315,6 +347,9 @@ public class TradeEngine {
                 if (order.profit > 0.0) profitableTrade++;
                 if (order.profit < 0.0) losingTrade++;
                 Order closedOrder = (Order) order.clone();
+
+                if (order.mt4TicketNumber>0) mt4CloseOrder(closedOrder);
+
                 if (logLevel != LogLevel.NONE) logStrategy.logTrade(false, closedOrder);
                 closedOrders.add(closedOrder);
 
@@ -333,14 +368,20 @@ public class TradeEngine {
                 e.printStackTrace();
             }
 
+            // részleges zárás miatt még maradt nyitva:
             order.openedAmount = order.openedAmount - order.closedAmount;
             if (order.openedAmount > 0.0) {
                 order.id = orderIndex;
+                if (order.mt4TicketNumber>0) {
+                    order.mt4TicketNumber=order.mt4NewTicketNumber;
+                    order.mt4OpenPrice=order.mt4NewOpenPrice;
+                    order.mt4OpenTime=order.mt4NewOpenTime;
+                }
                 if (logLevel != LogLevel.NONE) logStrategy.logTrade(true, order);
                 orderIndex++;
             }
 
-            if (tradeCenter!=null) {
+            if (tradeCenter != null) {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -453,6 +494,123 @@ public class TradeEngine {
 
     public void log(Indicator indicator) {
         logStrategy.indicatorsForLog.add(indicator);
+    }
+
+    void mt4SetResponseToOrder(String response,Order order) {
+
+        try {
+            JSONObject mt4Order;
+            JSONArray responseObject = (JSONArray) jsonParser.parse(response);
+//            System.out.println(responseObject);
+            JSONObject rootObject = (JSONObject) responseObject.get(0);
+
+//            System.out.println(rootObject.get("orders"));
+            JSONArray orderList = (JSONArray) rootObject.get("orders");
+            if (orderList!=null) {
+                for (Object orderObject : orderList) {
+                    if (orderObject instanceof JSONObject) {
+                        mt4Order = (JSONObject) orderObject;
+
+                        if (mt4Order.get("ticketNumber") != null)
+                            order.mt4TicketNumber = ((Long) mt4Order.get("ticketNumber")).intValue() ;
+                        if (mt4Order.get("openPrice") != null) order.mt4OpenPrice = (double) mt4Order.get("openPrice");
+                        if (mt4Order.get("mt4OpenTime") != null)
+                            order.mt4OpenTime = (ZonedDateTime) ZonedDateTime.parse((String) mt4Order.get("openTime"), timeSeriesRepo.zdtFormatterWithSeconds);
+
+
+                        if (mt4Order.get("closePrice") != null)
+                            order.mt4ClosePrice = (double) mt4Order.get("closePrice");
+                        if (mt4Order.get("mt4CloseTime") != null)
+                            order.mt4CloseTime = (ZonedDateTime) ZonedDateTime.parse((String) mt4Order.get("mt4CloseTime"), timeSeriesRepo.zdtFormatterWithSeconds);
+                        if (mt4Order.get("profit") != null) order.mt4Profit = (double) mt4Order.get("profit");
+
+                        // részleges zárás esetén az új order adatai
+                        if (mt4Order.get("newTicketNumber") != null)
+                            order.mt4NewTicketNumber =  ((Long) mt4Order.get("newTicketNumber")).intValue() ;
+                        if (mt4Order.get("newOpenPrice") != null)
+                            order.mt4NewOpenPrice = (double) mt4Order.get("newOpenPrice");
+                        if (mt4Order.get("mt4NewOpenTime") != null)
+                            order.mt4NewOpenTime = (ZonedDateTime) ZonedDateTime.parse((String) mt4Order.get("newOpenTime"), timeSeriesRepo.zdtFormatterWithSeconds);
+
+
+//                    System.out.println(((JSONObject) mt4Order).get("ticketNumber"));
+                    }
+                }
+            }
+
+        } catch (
+                ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void mt4OpenOrder(Order order) {
+        JSONObject mt4Order = new JSONObject();
+        currentTradeTime =Instant.now().atZone(ZoneId.of(timeSeriesRepo.metaTradeTimeZone));
+        mt4Order.put("time",timeSeriesRepo.zdtFormatter.format(currentTradeTime));
+        mt4Order.put("action", "TRADE_OPEN");
+        mt4Order.put("type", order.type.mt4OrderType());
+        mt4Order.put("symbol", symbol);
+        mt4Order.put("lot", order.openedAmount / 1000000);
+        mt4Order.put("stopLoss",order.stopLoss);
+        mt4Order.put("takeProfit", order.takeProfit);
+        mt4Order.put("magicNumber", order.mt4MagicNumber);
+        mt4Order.put("comment",order.mt4Comment);
+
+        logger.info("OUT: "+mt4Order.toJSONString());
+//        System.out.println(mt4Order.toJSONString());
+
+        socket.send(mt4Order.toJSONString().getBytes(ZMQ.CHARSET), 0);
+
+        byte[] reply = socket.recv(0);
+        if (reply == null) {
+            System.out.println("NO REPLY FOR CURRENT ORDER OPEN REQUEST "+order.id);
+            logger.error("NO REPLY FOR CURRENT ORDER OPEN REQUEST "+order.id);
+            order.mt4TicketNumber=-1;
+            order.mt4OpenTime=currentTradeTime;
+        }
+        else {
+            String response = new String(reply, ZMQ.CHARSET);
+            mt4SetResponseToOrder(response,order);
+            logger.info(response);
+//            System.out.println("response " + response);
+        }
+
+    }
+
+
+    void mt4CloseOrder(Order order) {
+        JSONObject mt4Order = new JSONObject();
+        currentTradeTime =Instant.now().atZone(ZoneId.of(timeSeriesRepo.metaTradeTimeZone));
+        mt4Order.put("time",timeSeriesRepo.zdtFormatter.format(currentTradeTime));
+        mt4Order.put("action", "TRADE_CLOSE");
+        mt4Order.put("lot", order.closedAmount / 1000000);
+        mt4Order.put("ticketNumber",order.mt4TicketNumber);
+
+//        System.out.println(mt4Order.toJSONString());
+        logger.info("OUT: "+mt4Order.toJSONString());
+
+        socket.send(mt4Order.toJSONString().getBytes(ZMQ.CHARSET), 0);
+
+        byte[] reply = socket.recv(0);
+        if (reply == null) {
+            System.out.println("NO REPLY FOR CURRENT ORDER CLOSE REQUEST "+order.id);
+            logger.error("NO REPLY FOR CURRENT ORDER CLOSE REQUEST "+order.id);
+        }
+        else {
+            String response = new String(reply, ZMQ.CHARSET);
+            mt4SetResponseToOrder(response,order);
+            logger.info(response);
+//            System.out.println("response " + response);
+        }
+
+    }
+
+
+    boolean mt4TradeIsAllowed() {
+
+        if (!backtestMode && ChronoUnit.MINUTES.between(timeSeriesRepo.lastMinuteBarTime, Instant.now()) < 2)  return true;
+        else return false;
     }
 
 }

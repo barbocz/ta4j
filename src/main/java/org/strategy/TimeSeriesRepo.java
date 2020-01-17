@@ -10,7 +10,17 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLOutput;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -25,21 +35,24 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
     public String coreMessage = "";
     public int portNumber;
     public Double bid, ask;
-//    private TradeCenter tradeCenter;
-    public List<TradeEngine> tradeEngines=new ArrayList<>();
-
+    public String metaTradeTimeZone="CET";
+    public DateTimeFormatter zdtFormatter,zdtFormatterWithSeconds;
+    //    private TradeCenter tradeCenter;
+    public List<TradeEngine> tradeEngines = new ArrayList<>();
 
 
     public CountDownLatch tickLatch, barChangeLatch, oneMinuteDataLatch;
     //    public List<String> onEventStrategies = new ArrayList<>();
     List<Integer> timeFramesForBarchange = new ArrayList<>();
 
+    Instant lastMinuteBarTime = null;
+
     public enum ProcessType {
         MT4,
         FILE
     }
 
-    public ProcessType processType=ProcessType.FILE;
+    public ProcessType processType = ProcessType.FILE;
 
     public TimeSeriesRepo(String symbol, int portNumber, TradeCenter tradeCenter) {
         this.symbol = symbol;
@@ -48,7 +61,18 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
 
         System.out.println("TimeSeriesRepo init: " + portNumber + "  - " + symbol);
 
-        if (processType==  ProcessType.MT4) System.out.println("OK");
+//        if (processType == ProcessType.MT4) System.out.println("processType:");
+
+        try (InputStream input = new FileInputStream("config.properties")) {
+            Properties prop = new Properties();
+            prop.load(input);
+            metaTradeTimeZone=prop.getProperty("mt4.timeZone");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.of(metaTradeTimeZone));
+        zdtFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss").withZone(ZoneId.of(metaTradeTimeZone));
 
 //        coreSeries = new MT4TimeSeries.SeriesBuilder().
 //                withName(symbol).
@@ -68,46 +92,62 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
                             ZMQ.Socket TimeSeriesSocket = context.createSocket(SocketType.REP);
                             TimeSeriesSocket.bind("tcp://*:" + portNumber);
 
+                            int requestedBarNumber = 1000;
+
                             while (!Thread.currentThread().isInterrupted()) {
                                 byte[] reply = TimeSeriesSocket.recv(0);
                                 String message = new String(reply, ZMQ.CHARSET);
                                 final String s;
+                                long ellapsedMinuteSinceLastMessage = 0;
+                                String response = "ok";
 
 
 //                                System.out.println("TimeSeriesRepo message: "+message);
                                 String items[] = message.split(";");
+//                                System.out.println(message);
+
+                                // MT4 üzenet típusok
+                                // T;2010.01.20 20:15;1.12345;1.23456  - Tick esemény a Bid,Ask értékek küldésére
+                                // P;2010.01.20 20:15 - MT4 terminál->this ping
+                                // M;2020.01.13 08:09;1.11262;1.11262;1.11251;1.11259;45.0 - Percenkénti OHLCV adatok küldése
+
                                 coreMessage = message;
 
+
+                                if (lastMinuteBarTime != null) {
+                                    try {
+                                        ellapsedMinuteSinceLastMessage = ChronoUnit.MINUTES.between(lastMinuteBarTime, ZonedDateTime.parse(items[1], zdtFormatter).toInstant());
+                                        if (ellapsedMinuteSinceLastMessage > 1)
+                                        {
+//                                            System.out.println("MISSED BARS " + ellapsedMinuteSinceLastMessage);
+                                            requestedBarNumber=(int)ellapsedMinuteSinceLastMessage;
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+
+//                                dataPeriodSeconds = ChronoUnit.SECONDS.between(dateFormatter.parse(ohlcv.get(firstRowIndex)[0]).toInstant(),
+//                                        dateFormatter.parse(ohlcv.get(firstRowIndex + 1)[0]).toInstant());
+
                                 if (items[0].equals("T")) {
-                                    bid = Double.valueOf(items[1]);
-                                    ask = Double.valueOf(items[2]);
+                                    bid = Double.valueOf(items[2]);
+                                    ask = Double.valueOf(items[3]);
                                     onTickEvent();
 
-                                } else if (items[0].equals("ping")) {
-                                    System.out.println("PINGED");
-                                    coreMessage = "pinged";
 
-                                } else if (items[0].equals("init")) {
-                                    processType=ProcessType.MT4;
-                                    for (MT4TimeSeries timeSeries : timeSeries.values()) {
-                                        timeSeries.resetBars();
-//                                        TimeSeriesRepo originalTsRepo=timeSeries.get(timeFrame).timeSeriesRepo;
-//                                        MT4TimeSeries mt4TimeSeries = new MT4TimeSeries.SeriesBuilder().
-//                                                withName(symbol).
-//                                                withPeriod(timeFrame).
-//                                                withDateFormatPattern("dd.MM.yyyy HH:mm").
-//                                                withNumTypeOf(DoubleNum.class).
-//                                                build();
-//                                        mt4TimeSeries.setTimeSeriesRepo(tradeCenter.timeSeriesRepos.get(symbol));
-//                                        timeSeries.replace(timeFrame,mt4TimeSeries);
-
-                                    }
-
-//                                    setTimeSeries(1);
-                                    coreMessage = "initiated";
+//                                } else if (items[0].equals("init")) {
+//                                    processType=ProcessType.MT4;
+//                                    for (MT4TimeSeries timeSeries : timeSeries.values()) {
+//                                        timeSeries.resetBars();
+//                                    }
+//
+//                                    coreMessage = "initiated";
+                                    response="ok";
 
                                 } else if (items[0].equals("M")) {
-
+//                                    System.out.println(message);
                                     timeFramesForBarchange.clear();
                                     for (Integer timeFrame : timeSeries.keySet()) {
 
@@ -117,11 +157,20 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
 
                                     }
                                     onBarChangeEventProcess();  // be kell várni az összes timeFramehez szükséges bar képzését
+                                    try {
+                                        lastMinuteBarTime=ZonedDateTime.parse(items[1], zdtFormatter).toInstant();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
 
+                                } else if (items[0].equals("P")) {
+//                                    System.out.println("PINGED: "+message);
+
+                                    coreMessage = "pinged";
+                                    response = Integer.toString(requestedBarNumber);
                                 }
 
 
-                                String response = "ok";
                                 TimeSeriesSocket.send(response.getBytes(ZMQ.CHARSET), 0);
 
                                 Platform.runLater(new Runnable() {
@@ -175,8 +224,8 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
         setTimeSeries(1);
     }
 
-    public TimeSeriesRepo(String symbol,String ohlcvFile, String dateFormatPattern) {
-        this.symbol=symbol;
+    public TimeSeriesRepo(String symbol, String ohlcvFile, String dateFormatPattern) {
+        this.symbol = symbol;
         coreSeries = new MT4TimeSeries.SeriesBuilder().
                 withName(ohlcvFile).
                 withPeriod(1).
@@ -206,8 +255,9 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
                         build();
 //                if (timeFrame==1) coreSeries=mt4TimeSeries;
             } else {
-                if (timeFrame==1) mt4TimeSeries=coreSeries;
-                else mt4TimeSeries = new MT4TimeSeries.SeriesBuilder().withPeriod(timeFrame).withSymbol(coreSeries.getSymbol()).buildFromSeries(coreSeries);
+                if (timeFrame == 1) mt4TimeSeries = coreSeries;
+                else
+                    mt4TimeSeries = new MT4TimeSeries.SeriesBuilder().withPeriod(timeFrame).withSymbol(coreSeries.getSymbol()).buildFromSeries(coreSeries);
             }
             mt4TimeSeries.setTimeSeriesRepo(this);  // callback miatt
             timeSeries.put(timeFrame, mt4TimeSeries);
@@ -282,17 +332,17 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
         int latchCounter = 0;
         for (TradeEngine tradeEngine : tradeEngines) {
 
-                latchCounter++;
-                Callable<Integer> task = () -> {
-                    try {
-                        tradeEngine.onTickEvent();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    tickLatch.countDown();
-                    return 1;
-                };
-                tasks.add(task);
+            latchCounter++;
+            Callable<Integer> task = () -> {
+                try {
+                    tradeEngine.onTickEvent();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                tickLatch.countDown();
+                return 1;
+            };
+            tasks.add(task);
 
         }
         if (tasks.size() == 0) return;
@@ -318,8 +368,8 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
         List<Callable<Integer>> tasks = new ArrayList<>();
         int latchCounter = 0;
         for (Integer changedTimeFrame : timeFramesForBarchange) {
-            for (TradeEngine tradeEngine :tradeEngines) {
-                if (tradeEngine.timeFrames.contains(changedTimeFrame) ) {
+            for (TradeEngine tradeEngine : tradeEngines) {
+                if (tradeEngine.timeFrames.contains(changedTimeFrame)) {
                     latchCounter++;
                     Callable<Integer> task = () -> {
                         try {
@@ -373,17 +423,17 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
         int latchCounter = 0;
         for (TradeEngine tradeEngine : tradeEngines) {
 
-                latchCounter++;
-                Callable<Integer> task = () -> {
-                    try {
-                        tradeEngine.onOneMinuteDataEvent();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    oneMinuteDataLatch.countDown();
-                    return 1;
-                };
-                tasks.add(task);
+            latchCounter++;
+            Callable<Integer> task = () -> {
+                try {
+                    tradeEngine.onOneMinuteDataEvent();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                oneMinuteDataLatch.countDown();
+                return 1;
+            };
+            tasks.add(task);
 
         }
         if (tasks.size() == 0) return;
@@ -436,7 +486,6 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
         ask = value;
         onTickEvent();
     }
-
 
 
 }

@@ -15,6 +15,10 @@ public class Order implements Cloneable {
             public boolean isBuy() {
                 return true;
             }
+
+            public int mt4OrderType() {
+                return 0;
+            }
         },
         SELL {
             @Override
@@ -26,10 +30,15 @@ public class Order implements Cloneable {
             public boolean isBuy() {
                 return false;
             }
+
+            public int mt4OrderType() {
+                return 1;
+            }
         };
 
         public abstract Type complementType();
         public abstract boolean isBuy();
+        public abstract int mt4OrderType();
     }
 
     public enum Status {
@@ -67,6 +76,12 @@ public class Order implements Cloneable {
     public double maxProfit=0.0,maxLoss=0.0;
 
     public ZonedDateTime openTime,closeTime;
+
+    // MT4-es paraméterek
+    public int mt4TicketNumber=0,mt4NewTicketNumber=0,mt4MagicNumber=0;
+    public ZonedDateTime mt4OpenTime,mt4NewOpenTime,mt4CloseTime;
+    public double mt4OpenPrice=0.0,mt4NewOpenPrice=0.0,mt4ClosePrice=0.0,mt4Profit=0.0;
+    public String mt4Comment="";
 
     public Object clone()throws CloneNotSupportedException{
         return (Order)super.clone();

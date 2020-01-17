@@ -6,21 +6,81 @@ import org.ta4j.core.Rule;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.trading.rules.OverIndicatorRule;
+import org.zeromq.SocketType;
+import org.zeromq.ZContext;
+import org.zeromq.ZMQ;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
+import java.util.Random;
 
 public class Test2 {
 
 
     public static void main(String[] args) throws Exception {
+        String metaTradeTimeZone="CET";
+        try (InputStream input = new FileInputStream("config.properties")) {
+            Properties prop = new Properties();
+            prop.load(input);
+            metaTradeTimeZone=prop.getProperty("mt4.timeZone");
+            input.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        DateTimeFormatter zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.of(metaTradeTimeZone));
+
+        System.out.println(ZonedDateTime.parse("2020.01.17 13:08", zdtFormatter).toInstant());
 
 
-        LogStrategy logStrategy=new LogStrategy();
-        logStrategy.getProfitByMonth(793);
+//        ZonedDateTime currentTime = ZonedDateTime.parse("2020.01.16 17:38", zdtFormatter);
+//
+//        System.out.println("zdt:"+currentTime);
+//        System.out.println("instant:"+currentTime.toInstant());
+//        System.out.println("instant now:"+Instant.now());
+
+
+//        Instant instant = Instant.now();
+//
+//        System.out.println("Instant : " + instant);
+//
+//        // Japan = UTC+9
+//        ZonedDateTime jpTime = instant.atZone(ZoneId.of("Etc/GMT-2"));
+//
+//        System.out.println("ZonedDateTime : " + jpTime);
+//
+//        System.out.println("OffSet : " + jpTime.getOffset());
+//        System.out.println("Instant : " + instant.atZone(ZoneId.of("Etc/GMT-2")).toInstant());
+//
+//        try (ZContext context = new ZContext()) {
+//            //  Socket to receive messages on
+////            ZMQ.Socket receiver = context.createSocket(SocketType.PULL);
+////            receiver.connect("tcp://*:5557");
+//
+//            //  Socket to send messages to
+//
+//            ZMQ.Socket sender = context.createSocket(SocketType.PUSH);
+//            sender.setSndHWM(1);
+//
+//            sender.connect("tcp://localhost:32769");
+//
+//
+//            String response="HALI";
+//
+//            sender.send(response.getBytes(ZMQ.CHARSET), 0);
+
+
+//        }
+
+
+
 
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
 //        ClosePriceIndicator closePrice = new ClosePriceIndicator(timeSeriesRepo.coreSeries);

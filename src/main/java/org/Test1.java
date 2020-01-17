@@ -34,10 +34,10 @@ public class Test1 {
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("USDJPY","backTestJPY.csv","yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
-//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
+        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTest.csv","yyyy.MM.dd HH:mm");
 
-        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("GBPUSD","backTestGBP.csv","yyyy.MM.dd HH:mm");
+//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("GBPUSD","backTestGBP.csv","yyyy.MM.dd HH:mm");
 
         long startTime = System.currentTimeMillis();
         TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.BASIC);

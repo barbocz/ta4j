@@ -45,6 +45,7 @@ public class LogStrategy {
     TradeEngine tradeEngine;
     boolean online = false;
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+    DateTimeFormatter dateTimeFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
     DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols(Locale.getDefault());
     DecimalFormat decimalFormatWith2Dec, decimalFormatWith5Dec;
 
@@ -52,7 +53,7 @@ public class LogStrategy {
 
     PreparedStatement insertTrade, updateTrade, insertEvaluation, updateStrategy;
 
-    String metaTradeFileDir;
+    String metaTradeFileDir,metaTradeTesterFileDir;
     Path targetDir ;
 
     public LogStrategy() throws Exception {
@@ -68,6 +69,7 @@ public class LogStrategy {
             Properties prop = new Properties();
             prop.load(input);
             metaTradeFileDir=prop.getProperty("mt4.filesDirectory");
+            metaTradeTesterFileDir=prop.getProperty("mt4.testerFilesDirectory");
             targetDir = Paths.get(metaTradeFileDir);
             input.close();
         } catch (IOException ex) {
@@ -137,9 +139,9 @@ public class LogStrategy {
 
 //        insertTrade = dbConnection.prepareStatement("insert into STRATEGY_TRADE_HISTORY values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
-        insertTrade = dbConnection.prepareStatement("insert into STRATEGY_TRADE_HISTORY (STRATEGY_ID,ORDER_ID,TYPE,OPEN_TIME,OPEN_PRICE,OPEN_AMOUNT,COMMENT) values (?,?,?,?,?,?,?)");
+        insertTrade = dbConnection.prepareStatement("insert into STRATEGY_TRADE_HISTORY (STRATEGY_ID,ORDER_ID,TYPE,OPEN_TIME,OPEN_PRICE,OPEN_AMOUNT,COMMENT,MT4_TICKET_NUMBER,MT_4_OPEN_TIME,MT4_OPEN_PRICE) values (?,?,?,?,?,?,?,?,?,?)");
 
-        updateTrade = dbConnection.prepareStatement("update STRATEGY_TRADE_HISTORY set CLOSE_TIME=?,CLOSE_PRICE=?,CLOSE_AMOUNT=?,CLOSE_BY=?,DURATION=?,PROFIT=?,COMMENT=?,MAX_PROFIT=?,MAX_LOSS=? where STRATEGY_ID=? AND ORDER_ID=?");
+        updateTrade = dbConnection.prepareStatement("update STRATEGY_TRADE_HISTORY set CLOSE_TIME=?,CLOSE_PRICE=?,CLOSE_AMOUNT=?,CLOSE_BY=?,DURATION=?,PROFIT=?,COMMENT=?,MAX_PROFIT=?,MAX_LOSS=?,MT_4_CLOSE_TIME=?,MT4_CLOSE_PRICE=?,MT4_PROFIT=? where STRATEGY_ID=? AND ORDER_ID=?");
 //        insertTrade= dbConnection.prepareStatement("insert into  STRATEGY_TRADE_HISTORY (STRATEGY_ID,ORDER_ID,TYPE,AMOUNT,OPEN_TIME,OPEN_PRICE) values (?,?,?,?,?,?)");
 //        insertTrade= dbConnection.prepareStatement("insert into  STRATEGY_TRADE_HISTORY (STRATEGY_ID,ORDER_ID) values (?,?)");
 
@@ -448,6 +450,12 @@ public class LogStrategy {
             insertTrade.setDouble(5, order.openPrice);
             insertTrade.setDouble(6, order.openedAmount);
             insertTrade.setString(7, "");
+            // MT4
+            insertTrade.setInt(8, order.mt4TicketNumber);
+            if (order.mt4OpenTime!=null) insertTrade.setString(9, dateTimeFormatterWithSeconds.format(order.mt4OpenTime));
+            else insertTrade.setString(9,null);
+            insertTrade.setDouble(10, order.mt4OpenPrice);
+
 
 //            insertTrade.setInt(1, id);
 //            insertTrade.setInt(2, order.id);
@@ -475,8 +483,15 @@ public class LogStrategy {
             updateTrade.setString(7, "");
             updateTrade.setDouble(8, order.maxProfit);
             updateTrade.setDouble(9, order.maxLoss);
-            updateTrade.setInt(10, id);
-            updateTrade.setInt(11, order.id);
+
+            // MT4 results
+            if (order.mt4CloseTime!=null)  updateTrade.setString(10, dateTimeFormatterWithSeconds.format(order.mt4CloseTime));
+            else updateTrade.setString(10,null);
+            updateTrade.setDouble(11, order.mt4ClosePrice);
+            updateTrade.setDouble(12, order.mt4Profit);
+
+            updateTrade.setInt(13, id);
+            updateTrade.setInt(14, order.id);
             updateTrade.executeUpdate();
 
         }
@@ -727,7 +742,7 @@ public class LogStrategy {
 //            System.out.println("lastClosePrice: "+lastClosePrice);
             while (rs.next()) {
                 fileContent.append(rs.getInt("ORDER_ID")).append("|").append(rs.getString("TYPE")).append("|").append(rs.getString("OPEN_TIME")).
-                        append("|").append(rs.getDouble("OPEN_PRICE")).append("|").append(rs.getString("CLOSE_TIME")).append("|").append(rs.getDouble("CLOSE_PRICE")).append("\r\n");
+                        append("|").append(rs.getDouble("OPEN_PRICE")).append("|").append(rs.getString("CLOSE_TIME")).append("|").append(rs.getDouble("CLOSE_PRICE")).append("|").append(rs.getDouble("CLOSE_AMOUNT")).append("\r\n");
 
                 if ( rs.getDouble("CLOSE_AMOUNT") == 0.0) {
                     if (rs.getString("TYPE").equals("BUY"))
@@ -738,6 +753,10 @@ public class LogStrategy {
             }
 
             rs.close();
+            fileWriter.write(fileContent.toString());
+            fileWriter.close();
+
+            fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaTradeTesterFileDir + "log4J_trades.csv"), "UTF8"));
             fileWriter.write(fileContent.toString());
             fileWriter.close();
 

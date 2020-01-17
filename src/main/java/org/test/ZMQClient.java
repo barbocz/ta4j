@@ -40,7 +40,7 @@ public class ZMQClient extends Application {
             Scene scene=new Scene(root);
             primaryStage.setScene(scene);
             primaryStage.setTitle("ZMQ - CLIENT");
-            primaryStage.setX(2000);
+            primaryStage.setX(2600);
             primaryStage.setY(100);
             primaryStage.show();
 

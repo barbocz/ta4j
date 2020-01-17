@@ -90,7 +90,7 @@ public class Test {
         TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
         Strategy keltnerEntry=new KeltnerEntry();
         Strategy keltnerEntryWithCCI=new KeltnerEntryWithCCI(3,timeSeriesRepo);
-        Strategy testEntry=new TestEntry(3,timeSeriesRepo);
+        Strategy testEntry=new TestEntry();
 
 //        TimeSeries ts=timeSeriesRepo.getTimeSeries(3);
 //

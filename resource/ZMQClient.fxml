@@ -8,20 +8,21 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.GridPane?>
 
-<AnchorPane fx:id="anchorPane" prefHeight="300.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.test.ZMQClientController">
+<AnchorPane fx:id="anchorPane" prefHeight="300.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.231" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.test.ZMQClientController">
     <children>
-        <Button fx:id="button" layoutX="142.0" layoutY="27.0" mnemonicParsing="false" onAction="#portInit" prefHeight="25.0" prefWidth="139.0" text="Init" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-      <TextField fx:id="symbol" layoutX="14.0" layoutY="27.0" prefHeight="25.0" prefWidth="68.0" text="SYMBOL" />
-      <TextField fx:id="period" layoutX="97.0" layoutY="27.0" prefHeight="25.0" prefWidth="33.0" text="1" />
-      <Button layoutX="14.0" layoutY="68.0" mnemonicParsing="false" onAction="#send" prefHeight="25.0" prefWidth="270.0" text="Send Data" />
+        <Button fx:id="button" layoutX="447.0" layoutY="27.0" mnemonicParsing="false" onAction="#open" prefHeight="25.0" prefWidth="139.0" text="Open" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <TextField fx:id="symbol" layoutX="14.0" layoutY="27.0" prefHeight="25.0" prefWidth="88.0" text="EURUSD" />
+      <TextField fx:id="lot" layoutX="123.0" layoutY="27.0" prefHeight="25.0" prefWidth="33.0" text="1" />
+        <TextField fx:id="message" layoutX="14.0" layoutY="87.0" prefHeight="25.0" prefWidth="300.0" text="TRADE|OPEN|1|EURUSD|0.1|0|0|R-to-MetaTrader4|12345678" />
+      <Button layoutX="21.0" layoutY="197.0" mnemonicParsing="false" onAction="#send" prefHeight="25.0" prefWidth="270.0" text="Send Data" />
       <Label fx:id="info" layoutX="14.0" layoutY="269.0" prefHeight="17.0" prefWidth="576.0" text="..." />
-      <RadioButton fx:id="minuteRadioButton" layoutX="300.0" layoutY="72.0" mnemonicParsing="false" selected="true" text="Minute data">
+      <RadioButton fx:id="buy" layoutX="182.0" layoutY="33.0" mnemonicParsing="false" selected="true" text="Buy">
          <toggleGroup>
             <ToggleGroup fx:id="dataGroup" />
          </toggleGroup>
       </RadioButton>
-      <RadioButton fx:id="tickRadioButton" layoutX="427.0" layoutY="72.0" mnemonicParsing="false" text="Tick" toggleGroup="$dataGroup" />
-      <Button layoutX="375.0" layoutY="27.0" mnemonicParsing="false" text="Button" onAction="#test"/>
+      <RadioButton fx:id="sell" layoutX="285.0" layoutY="33.0" mnemonicParsing="false" text="Sell" toggleGroup="$dataGroup" />
+      <Button layoutX="447.0" layoutY="87.0" mnemonicParsing="false" onAction="#close" prefHeight="39.0" prefWidth="139.0" text="Close"/>
     </children>
 
 </AnchorPane>
