@@ -26,6 +26,10 @@ package org.ta4j.core.indicators;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.num.Num;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 /**
  * The Kaufman's Adaptive Moving Average (KAMA)  Indicator.
  * 
@@ -72,6 +76,8 @@ public class KAMAIndicator extends RecursiveCachedIndicator<Num> {
 
     @Override
     protected Num calculate(int index) {
+
+
         Num currentPrice = price.getValue(index);
         if (index < barCountEffectiveRatio) {
             return currentPrice;
@@ -101,7 +107,10 @@ public class KAMAIndicator extends RecursiveCachedIndicator<Num> {
          * Current KAMA = Prior KAMA + SC x (Price - Prior KAMA)
          */
         Num priorKAMA = getValue(index - 1);
-        return priorKAMA.plus(sc.multipliedBy(currentPrice.minus(priorKAMA)));
+        Num returnValue=priorKAMA.plus(sc.multipliedBy(currentPrice.minus(priorKAMA)));
+
+        if (sc.isZero() || sc.isNaN()) return priorKAMA;
+        else return priorKAMA.plus(sc.multipliedBy(currentPrice.minus(priorKAMA)));
     }
 
 }

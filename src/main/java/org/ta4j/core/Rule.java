@@ -118,4 +118,6 @@ public interface Rule {
     default boolean isSatisfied(int index) {return false;}
 
     default boolean isSatisfied(ZonedDateTime time) {return false;}
+
+    default boolean isSatisfied(ZonedDateTime time,boolean isLogNeeded) {return false;}
 }

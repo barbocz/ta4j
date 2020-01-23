@@ -25,7 +25,6 @@ package org.ta4j.core.trading.rules;
 
 import org.strategy.TimeSeriesRepo;
 import org.ta4j.core.Indicator;
-import org.ta4j.core.TradingRecord;
 import org.ta4j.core.num.Num;
 
 import java.time.ZonedDateTime;
@@ -38,96 +37,110 @@ import java.time.ZonedDateTime;
  */
 public class IsFallingRule extends AbstractRule {
 
-	/** The actual indicator */
-	private final Indicator<Num> ref;
-	/** The barCount */
-	private final int barCount;
-	/** The minimum required strenght of the falling */
-	private double minStrenght;
-	private TimeSeriesRepo timeSeriesRepo=null;
+    /**
+     * The actual indicator
+     */
+    private final Indicator<Num> ref;
+    /**
+     * The barCount
+     */
+    private final int barCount;
+    /**
+     * The minimum required strenght of the falling
+     */
+    private double minStrenght;
+    private TimeSeriesRepo timeSeriesRepo = null;
+    private boolean considerEqualAsFalling = false;
 
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param ref the indicator
-	 * @param barCount the time frame
-	 */
-	public IsFallingRule(Indicator<Num> ref, int barCount) {
-		this(ref, barCount, 1.0);
-	}
-	
-	/**
-	 * Constructor.
-	 * 
-	 * @param ref the indicator
-	 * @param barCount the time frame
-	 * @param minStrenght the minimum required falling strength (between '0' and '1', e.g. '1' for strict falling)
-	 */
-	public IsFallingRule(Indicator<Num> ref, int barCount, double minStrenght) {
-		this.ref=ref;
-		period=ref.getTimeSeries().getPeriod();
-		timeSeriesRepo=ref.getTimeSeries().getTimeSeriesRepo();
-		this.barCount = barCount;
-		this.minStrenght = minStrenght;
-	}
+    /**
+     * Constructor.
+     *
+     * @param ref      the indicator
+     * @param barCount the time frame
+     */
+    public IsFallingRule(Indicator<Num> ref, int barCount) {
+        this(ref, barCount, 0.99);
+    }
 
-	@Override
-	public boolean isSatisfied(int index) {
-		int indexForPeriod=getCore().getIndex(index,period);
-		if (minStrenght >= 1) {
-			minStrenght = 0.99;
-		}
-		
-		int count = 0;
+    public IsFallingRule(Indicator<Num> ref, boolean considerEqualAsFalling) {
+        this(ref, 1, 0.99);
+        this.considerEqualAsFalling = considerEqualAsFalling;
+    }
 
 
-		for (int i = Math.max(0, indexForPeriod - barCount + 1); i <= indexForPeriod; i++) {
-			if (ref.getValue(i).isLessThan(ref.getValue(Math.max(0, i - 1)))) {
-				count += 1;
-			}
-		}
+    /**
+     * Constructor.
+     *
+     * @param ref         the indicator
+     * @param barCount    the time frame
+     * @param minStrenght the minimum required falling strength (between '0' and '1', e.g. '1' for strict falling)
+     */
+    public IsFallingRule(Indicator<Num> ref, int barCount, double minStrenght) {
+        this.ref = ref;
+        period = ref.getTimeSeries().getPeriod();
+        timeSeriesRepo = ref.getTimeSeries().getTimeSeriesRepo();
+        this.barCount = barCount;
+        this.minStrenght = minStrenght;
+    }
 
-		double ratio = count / (double) barCount;
+    @Override
+    public boolean isSatisfied(int index) {
+        int indexForPeriod = getCore().getIndex(index, period);
+        if (minStrenght >= 1) {
+            minStrenght = 0.99;
+        }
 
-		final boolean satisfied = ratio >= minStrenght;
-		//traceIsSatisfied(index, satisfied);
-		getCore().debugRule(index,this,satisfied);
-		return satisfied;
-	}
-
-	@Override
-	public boolean isSatisfied(ZonedDateTime time) {
-		int index=timeSeriesRepo.getIndex(time,period);
-		if (index<0 ) return false;
-
-		if (minStrenght >= 1) {
-			minStrenght = 0.99;
-		}
-
-		int count = 0;
+        int count = 0;
 
 
-		for (int i = Math.max(0, index - barCount + 1); i <= index; i++) {
-			if (ref.getValue(i).isLessThan(ref.getValue(Math.max(0, i - 1)))) {
-				count += 1;
-			}
-		}
+        for (int i = Math.max(0, indexForPeriod - barCount + 1); i <= indexForPeriod; i++) {
+            if (considerEqualAsFalling) {
+                if (ref.getValue(i).isLessThanOrEqual(ref.getValue(Math.max(0, i - 1)))) count += 1;
+            } else if (ref.getValue(i).isLessThan(ref.getValue(Math.max(0, i - 1)))) count += 1;
 
-		double ratio = count / (double) barCount;
+        }
 
-		final boolean satisfied = ratio >= minStrenght;
-		//traceIsSatisfied(index, satisfied);
+        double ratio = count / (double) barCount;
+
+        final boolean satisfied = ratio >= minStrenght;
+        //traceIsSatisfied(index, satisfied);
+        getCore().debugRule(index, this, satisfied);
+        return satisfied;
+    }
+
+    @Override
+    public boolean isSatisfied(ZonedDateTime time) {
+        int index = timeSeriesRepo.getIndex(time, period);
+        if (index < 0) return false;
+
+        if (minStrenght >= 1) {
+            minStrenght = 0.99;
+        }
+
+        int count = 0;
+
+
+        for (int i = Math.max(0, index - barCount + 1); i <= index; i++) {
+            if (considerEqualAsFalling) {
+                if (ref.getValue(i).isLessThanOrEqual(ref.getValue(Math.max(0, i - 1)))) count += 1;
+            } else if (ref.getValue(i).isLessThan(ref.getValue(Math.max(0, i - 1)))) count += 1;
+        }
+
+        double ratio = count / (double) barCount;
+
+        final boolean satisfied = ratio >= minStrenght;
+        //traceIsSatisfied(index, satisfied);
 //		getCore().debugRule(index,this,satisfied);
-		if (satisfied)  tradeEngine.logStrategy.logRule(this,time,index,satisfied);
-		return satisfied;
-	}
+        if (satisfied && isLogNeeded) tradeEngine.logStrategy.logRule(this, time, index, satisfied);
+        return satisfied;
+    }
 
-	@Override
-	public String getParameters() {
-		String info=getClass().getSimpleName();
-		info+=" ("+ref.getClass().getSimpleName()+" M"+ref.getTimeSeries().getPeriod()+")";
-		if (barCount>0) info+=" in "+barCount;
-		return info;
-	}
+    @Override
+    public String getParameters() {
+        String info = getClass().getSimpleName();
+        info += " (" + ref.getClass().getSimpleName() + " M" + ref.getTimeSeries().getPeriod() + ")";
+        if (barCount > 0) info += " in " + barCount;
+        return info;
+    }
 }

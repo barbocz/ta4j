@@ -28,6 +28,7 @@ import org.ta4j.core.Core;
 import org.ta4j.core.Rule;
 import org.ta4j.core.TimeSeries;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,12 +42,14 @@ public abstract class AbstractRule implements Rule {
     public int period=1;
     public TradeEngine tradeEngine;
 
+
     public String simpleName;
 
 
     private HashMap<Integer, String> ruleItems;
     private String ruleItem;
     private List<Rule> ruleSet;
+    protected boolean isLogNeeded=true;
 
 
     private TimeSeries series;
@@ -75,6 +78,8 @@ public abstract class AbstractRule implements Rule {
         ruleSet = new ArrayList<>();
         return getDescription(this);
     }
+
+
 
 
 
@@ -202,6 +207,14 @@ public abstract class AbstractRule implements Rule {
     public void setTradeEngine(TradeEngine tradeEngine){
         this.tradeEngine =tradeEngine;
 //        setStrategyForRule(this);
+    }
+
+    @Override
+    public boolean isSatisfied(ZonedDateTime time, boolean isLogNeeded) {
+        this.isLogNeeded=isLogNeeded;
+        boolean isSatisfied=isSatisfied(time);
+        this.isLogNeeded=true;
+        return false;
     }
 
 //    public void setTradeEngine(TradeEngine tradeEn){

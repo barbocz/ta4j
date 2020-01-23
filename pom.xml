@@ -76,11 +76,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<bnd>
-						<![CDATA[
-						-exportcontents: ${packages;NAMED;*org.ta4j.core*}
-						]]>
-					</bnd>
+
 				</configuration>
 			</plugin>
 		</plugins>

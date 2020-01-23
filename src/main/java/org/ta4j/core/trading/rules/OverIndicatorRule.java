@@ -168,7 +168,7 @@ public class OverIndicatorRule extends AbstractRule {
             }
         }
 //        getCore().debugRule(indexForFirst,this,satisfied);
-        if (satisfied)  tradeEngine.logStrategy.logRule(this,time,indexForFirst,satisfied);
+        if (satisfied && isLogNeeded)  tradeEngine.logStrategy.logRule(this,time,indexForFirst,satisfied);
 
         return satisfied;
     }

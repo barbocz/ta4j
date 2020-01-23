@@ -25,10 +25,11 @@ package org.ta4j.core.trading.rules;
 
 import org.strategy.TimeSeriesRepo;
 import org.ta4j.core.Indicator;
-import org.ta4j.core.TradingRecord;
 import org.ta4j.core.num.Num;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Indicator-rising-indicator rule.
@@ -38,91 +39,113 @@ import java.time.ZonedDateTime;
  */
 public class IsRisingRule extends AbstractRule {
 
-	/** The actual indicator */
-	private final Indicator<Num> ref;
-	/** The barCount */
-	private final int barCount;
-	/** The minimum required strenght of the rising */
-	private double minStrenght;
-	private TimeSeriesRepo timeSeriesRepo=null;
+    /**
+     * The actual indicator
+     */
+    private final Indicator<Num> ref;
+    /**
+     * The barCount
+     */
+    private final int barCount;
+    /**
+     * The minimum required strenght of the rising
+     */
+    private double minStrenght;
+    private TimeSeriesRepo timeSeriesRepo = null;
+    private boolean considerEqualAsRising = false;
 
-	/**
-	 * Constructor for strict rising.
-	 * 
-	 * @param ref the indicator
-	 * @param barCount the time frame
-	 */
-	public IsRisingRule(Indicator<Num> ref, int barCount) {
-		this(ref, barCount, 1);
-	}
-	
-	/**
-	 * Constructor.
-	 * 
-	 * @param ref the indicator
-	 * @param barCount the time frame
-	 * @param minStrenght the minimum required rising strenght (between '0' and '1', e.g. '1' for strict rising)
-	 */
-	public IsRisingRule(Indicator<Num> ref, int barCount, double minStrenght) {
-		this.ref=ref;
-		this.barCount = barCount;
-		this.minStrenght = minStrenght;
-		period=ref.getTimeSeries().getPeriod();
-		timeSeriesRepo=ref.getTimeSeries().getTimeSeriesRepo();
-	}
+    /**
+     * Constructor for strict rising.
+     *
+     * @param ref      the indicator
+     * @param barCount the time frame
+     */
+    public IsRisingRule(Indicator<Num> ref, int barCount) {
+        this(ref, barCount, 1);
+    }
 
-	@Override
-	public boolean isSatisfied(int index) {
-		int indexForPeriod=getCore().getIndex(index,period);
-		if (minStrenght >= 1) {
-			minStrenght = 0.99;
-		}
-		
-		int count = 0;
-		for (int i = Math.max(0, indexForPeriod - barCount + 1); i <= indexForPeriod; i++) {
-			if (ref.getValue(i).isGreaterThan(ref.getValue(Math.max(0, i - 1)))) {
-				count += 1;
-			}
-		}
+    public IsRisingRule(Indicator<Num> ref, boolean considerEqualAsRising) {
+        this(ref, 1, 0.99);
+        this.considerEqualAsRising = considerEqualAsRising;
+    }
 
-		double ratio = count / (double) barCount;
-		
-		final boolean satisfied = ratio >= minStrenght;
-		//traceIsSatisfied(index, satisfied);
-		getCore().debugRule(index,this,satisfied);
-		return satisfied;
-	}
+    /**
+     * Constructor.
+     *
+     * @param ref         the indicator
+     * @param barCount    the time frame
+     * @param minStrenght the minimum required rising strenght (between '0' and '1', e.g. '1' for strict rising)
+     */
+    public IsRisingRule(Indicator<Num> ref, int barCount, double minStrenght) {
+        this.ref = ref;
+        this.barCount = barCount;
+        this.minStrenght = minStrenght;
+        period = ref.getTimeSeries().getPeriod();
+        timeSeriesRepo = ref.getTimeSeries().getTimeSeriesRepo();
+    }
 
-	@Override
-	public boolean isSatisfied(ZonedDateTime time) {
+    @Override
+    public boolean isSatisfied(int index) {
+        int indexForPeriod = getCore().getIndex(index, period);
+        if (minStrenght >= 1) {
+            minStrenght = 0.99;
+        }
 
-		int index=timeSeriesRepo.getIndex(time,period);
-		if (index<0) return false;
-		if (minStrenght >= 1) {
-			minStrenght = 0.99;
-		}
 
-		int count = 0;
-		for (int i = Math.max(0, index - barCount + 1); i <= index; i++) {
-			if (ref.getValue(i).isGreaterThan(ref.getValue(Math.max(0, i - 1)))) {
-				count += 1;
-			}
-		}
 
-		double ratio = count / (double) barCount;
+        int count = 0;
+        for (int i = Math.max(0, indexForPeriod - barCount + 1); i <= indexForPeriod; i++) {
+            if (considerEqualAsRising) {
+                if (ref.getValue(i).isGreaterThanOrEqual(ref.getValue(Math.max(0, i - 1)))) count += 1;
+            } else if (ref.getValue(i).isGreaterThan(ref.getValue(Math.max(0, i - 1)))) count += 1;
 
-		final boolean satisfied = ratio >= minStrenght;
-		//traceIsSatisfied(index, satisfied);
+
+        }
+
+        double ratio = count / (double) barCount;
+
+        final boolean satisfied = ratio >= minStrenght;
+        //traceIsSatisfied(index, satisfied);
+        getCore().debugRule(index, this, satisfied);
+        return satisfied;
+    }
+
+    @Override
+    public boolean isSatisfied(ZonedDateTime time) {
+
+        int index = timeSeriesRepo.getIndex(time, period);
+        if (index < 0) return false;
+        if (minStrenght >= 1) {
+            minStrenght = 0.99;
+        }
+
+//        ZonedDateTime debugTime=ZonedDateTime.parse("2019.12.26 12:30", DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault()));
+//        if (time.isEqual(debugTime)) {
+//            System.out.println(ref.getValue(index)+" - "+ref.getValue(index-1));
+//        }
+
+        int count = 0;
+        for (int i = Math.max(0, index - barCount + 1); i <= index; i++) {
+            if (considerEqualAsRising) {
+                if (ref.getValue(i).isGreaterThanOrEqual(ref.getValue(Math.max(0, i - 1)))) count += 1;
+            } else if (ref.getValue(i).isGreaterThan(ref.getValue(Math.max(0, i - 1)))) count += 1;
+
+        }
+
+        double ratio = count / (double) barCount;
+
+        final boolean satisfied = ratio >= minStrenght;
+        //traceIsSatisfied(index, satisfied);
 //		getCore().debugRule(index,this,satisfied);
-		if (satisfied)  tradeEngine.logStrategy.logRule(this,time,index,satisfied);
-		return satisfied;
-	}
+        if (satisfied && isLogNeeded) tradeEngine.logStrategy.logRule(this, time, index, satisfied);
+        return satisfied;
+    }
 
-	@Override
-	public String getParameters() {
-		String info=getClass().getSimpleName();
-		info+=" ("+ref.getClass().getSimpleName()+" M"+ref.getTimeSeries().getPeriod()+")";
-		if (barCount>0) info+=" in "+barCount;
-		return info;
-	}
+    @Override
+    public String getParameters() {
+        String info = getClass().getSimpleName();
+        info += " (" + ref.getClass().getSimpleName() + " M" + ref.getTimeSeries().getPeriod() + ")";
+        if (barCount > 0) info += " in " + barCount;
+        return info;
+    }
 }

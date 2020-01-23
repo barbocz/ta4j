@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.strategy.Order;
 import org.strategy.Strategy;
 import org.strategy.TimeSeriesRepo;
 import org.strategy.TradeEngine;
@@ -479,10 +480,21 @@ public class TradeCenter {
     }
 
     public void test(ActionEvent e) {
-        getPort("GBPUSD");
-        startEngine("GBPUSD", 3);
+//        getPort("GBPUSD");
+//        startEngine("GBPUSD", 3);
 
+        for (TradeEngine tradeEngine : tradeEngines.values()) {
 
+            System.out.println("OPENED-----------------------------------");
+            for (Order order: tradeEngine.openedOrders) {
+                System.out.println(order.id+". mt4: "+order.mt4TicketNumber+"  opened lot: "+order.openedAmount+"  closed lot: "+order.closedAmount+"    sl: "+order.stopLoss+"   tp: "+order.takeProfit);
+            }
+            System.out.println("CLOSED-----------------------------------");
+            for (Order order: tradeEngine.closedOrders) {
+                System.out.println(order.id+". mt4: "+order.mt4TicketNumber+"  opened lot: "+order.openedAmount+"  closed lot: "+order.closedAmount+"  close time:"+order.closeTime+"  mt4 close time: "+order.mt4CloseTime);
+            }
+
+        }
 
 
 

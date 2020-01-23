@@ -43,9 +43,16 @@ public class ATRIndicator extends CachedIndicator<Num> {
         NONE
     }
 
+    public static enum Direction{
+        PLUS,
+        MINUS,
+        NONE
+    }
+
     private final MMAIndicator averageTrueRangeIndicator;
     private double coefficient=1.0;
     private PriceType priceType=PriceType.NONE;
+    private Direction direction=Direction.NONE;
 
     public ATRIndicator(TimeSeries series, int barCount) {
         super(series);
@@ -58,12 +65,13 @@ public class ATRIndicator extends CachedIndicator<Num> {
         this.coefficient=coefficient;
     }
 
-    public ATRIndicator(TimeSeries series, int barCount, double coefficient, PriceType priceType) {
+    public ATRIndicator(TimeSeries series, int barCount, double coefficient, PriceType priceType,Direction direction) {
 
         super(series);
         this.averageTrueRangeIndicator = new MMAIndicator(new TRIndicator(series), barCount);
         this.coefficient=coefficient;
         this.priceType=priceType;
+        this.direction=direction;
 
     }
 
@@ -78,7 +86,8 @@ public class ATRIndicator extends CachedIndicator<Num> {
             else if (priceType.equals(PriceType.OPEN)) price = getTimeSeries().getBar(index).getOpenPrice();
             else if (priceType.equals(PriceType.LOW)) price = getTimeSeries().getBar(index).getLowPrice();
             else if (priceType.equals(PriceType.HIGH)) price = getTimeSeries().getBar(index).getHighPrice();
-            value=value.plus(price);
+            if (direction==Direction.PLUS) value=value.plus(price);
+            else  if (direction==Direction.MINUS) value=value.minus(price);
         }
 
 

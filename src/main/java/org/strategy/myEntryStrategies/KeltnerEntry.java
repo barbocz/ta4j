@@ -2,24 +2,20 @@ package org.strategy.myEntryStrategies;
 
 import org.strategy.Order;
 import org.strategy.Strategy;
-import org.strategy.TimeSeriesRepo;
-import org.ta4j.core.Rule;
 import org.ta4j.core.indicators.*;
 import org.ta4j.core.indicators.helpers.*;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
-import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
-import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.indicators.volume.MoneyFlowIndicator;
-import org.ta4j.core.indicators.volume.ROCVIndicator;
-import org.ta4j.core.indicators.volume.VWAPIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.trading.rules.*;
 
 import java.awt.*;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 public class KeltnerEntry extends Strategy {
@@ -32,11 +28,6 @@ public class KeltnerEntry extends Strategy {
 
 
     public void init(){
-
-
-
-
-
 
         ClosePriceIndicator closePrice = new ClosePriceIndicator(tradeEngine.series);
 
@@ -67,9 +58,19 @@ public class KeltnerEntry extends Strategy {
 
         EMAIndicator emaIndicator=new EMAIndicator(closePrice,3);
 
+        HighPriceIndicator highPriceIndicator = new HighPriceIndicator(tradeEngine.series);
+        HighestValueIndicator highestValueIndicator = new HighestValueIndicator(highPriceIndicator, 34);
+        ATRIndicator atrPlusClosePrice = new ATRIndicator(tradeEngine.series, 54,0.6, ATRIndicator.PriceType.CLOSE, ATRIndicator.Direction.PLUS);
+        ATRIndicator atrMinusClosePrice = new ATRIndicator(tradeEngine.series, 54,0.6, ATRIndicator.PriceType.CLOSE, ATRIndicator.Direction.MINUS);
+
+        LowPriceIndicator lowPriceIndicator = new LowPriceIndicator(tradeEngine.series);
+        LowestValueIndicator lowestValueIndicator = new LowestValueIndicator(lowPriceIndicator, 34);
+
+        KAMAIndicator kamaIndicator = new KAMAIndicator(closePrice,8,2,30);
 
 
-//        MoneyFlowIndicator moneyFlowIndicator=new MoneyFlowIndicator(tradeEngine.series,8);
+
+        MoneyFlowIndicator moneyFlowIndicator=new MoneyFlowIndicator(tradeEngine.series,6);
 
 //        Rule closePriceOverKeltnerUpperIn8=new OverIndicatorRule(closePrice, kcU, 8);
 //        Rule closePriceOverKeltnerUpper8In3=new OverIndicatorRule(closePrice, kcU8, 3);
@@ -79,15 +80,18 @@ public class KeltnerEntry extends Strategy {
 //
 //        ruleForSell=closePriceOverKeltnerUpperIn8.and(closePriceOverKeltnerMiddle).and(chaikinOver0_4in8).and(noTradeOpen);
 
-        ruleForSell = new OverIndicatorRule(closePrice, kcU, 8);
+        ruleForSell = new OverIndicatorRule(closePrice, kcU, 6);
+//        ruleForSell = ruleForSell.and(new NotRule( new UnderIndicatorRule(closePrice, kcM, 4)));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(longCci,cciUpperLimit ));
-
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU8, 3));
         ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcM));
-        ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.4, 8));
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 98, 8));
+        ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.43, 6));
+        ruleForSell =  ruleForSell.and(new IsFallingRule(kamaIndicator,false));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(highestValueIndicator,atrPlusClosePrice));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 98, 6));
 //        ruleForSell = ruleForSell.and(new IsFallingRule(emaIndicator, 1, 1.0));
-        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,21));
+        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,2));
+
 
 //        ruleForSell = ruleForSell.or(new OverIndicatorRule(cciIndicator,tradeEngine.series.numOf(220)).
 //                and(new hasOpenOrder(tradeEngine, hasOpenOrder.OpenedOrderType.ONLY_SELL)).and(new UnderIndicatorRule(closePrice,kcU)));
@@ -95,16 +99,19 @@ public class KeltnerEntry extends Strategy {
 
 
 
-        ruleForBuy = new UnderIndicatorRule(closePrice, kcL, 8);
+        ruleForBuy = new UnderIndicatorRule(closePrice, kcL, 6);
+//        ruleForBuy = ruleForBuy.and(new NotRule( new OverIndicatorRule(closePrice, kcM, 4)));
 //        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(closePrice, kcL));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(longCci, cciLowerLimit));
 
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL8, 3     ));
         ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcM));
-        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.4, 8));
-//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(moneyFlowIndicator, 2, 8));
+        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.43, 6));
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(lowestValueIndicator,atrMinusClosePrice));
+        ruleForBuy = ruleForBuy.and(new IsRisingRule(kamaIndicator,false));
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(moneyFlowIndicator, 2, 6));
 //        ruleForBuy = ruleForBuy.and(new IsRisingRule(emaIndicator, 1, 1.0));
-        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL,21));
+        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL,2));
 //        ruleForBuy = ruleForBuy.or(new UnderIndicatorRule(cciIndicator,tradeEngine.series.numOf(-220)).
 //                and(new hasOpenOrder(tradeEngine, hasOpenOrder.OpenedOrderType.ONLY_BUY)).and(new OverIndicatorRule(closePrice,kcL)));
 
@@ -120,8 +127,8 @@ public class KeltnerEntry extends Strategy {
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);
 
-        emaIndicator.indicatorColor=Color.RED;
-        tradeEngine.log(emaIndicator);
+        kamaIndicator.indicatorColor=Color.YELLOW;
+        tradeEngine.log(kamaIndicator);
 
         kcU.indicatorColor=Color.WHITE;
         tradeEngine.log(kcU);
@@ -139,17 +146,24 @@ public class KeltnerEntry extends Strategy {
 //        tradeEngine.log(kcL8);
 
 
-        longCci.subWindowIndex=4;
-        tradeEngine.log(longCci);
+        chaikinIndicator.subWindowIndex=4;
+        tradeEngine.log(chaikinIndicator);
 
 //        testIndicator1.subWindowIndex=3;
 //        testIndicator1.indicatorColor=Color.RED;
 //        tradeEngine.log(testIndicator1);
 
 
+//
+        moneyFlowIndicator.subWindowIndex=5;
+        tradeEngine.log(moneyFlowIndicator);
+//        highDifferenceIndicator.indicatorColor=Color.RED;
+//
+//        atrIndicator.subWindowIndex=5;
+//        tradeEngine.log(atrIndicator);
+//        highDifferenceIndicator.indicatorColor=Color.GREEN;
 
-//        moneyFlowIndicator.subWindowIndex=5;
-//        tradeEngine.log(moneyFlowIndicator);
+
 
         kcL.indicatorColor=Color.WHITE;
         tradeEngine.log(kcL);
@@ -214,6 +228,10 @@ public class KeltnerEntry extends Strategy {
 //            ZonedDateTime time=tradeEngine.series.getCurrentTime();
 
             ZonedDateTime time=tradeEngine.series.getCurrentTime();
+//            ZonedDateTime debugTime= ZonedDateTime.parse("2019.12.26 00:45", DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault()));
+//            if (time.isEqual(debugTime)) {
+//                System.out.println("here");
+//            }
 
 //            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
 //            ZonedDateTime zdt= ZonedDateTime.parse("2019.08.02 10:54", dateFormatter.withZone(ZoneId.systemDefault()));

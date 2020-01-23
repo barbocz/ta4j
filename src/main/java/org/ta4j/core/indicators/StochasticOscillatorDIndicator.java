@@ -36,7 +36,7 @@ public class StochasticOscillatorDIndicator extends CachedIndicator<Num> {
     private Indicator<Num> indicator;
 
     public StochasticOscillatorDIndicator(StochasticOscillatorKIndicator k) {
-        this(new SMAIndicator(k, 3));
+        this(new SMMAIndicator(k, 5));
     }
 
     public StochasticOscillatorDIndicator(Indicator<Num> indicator) {

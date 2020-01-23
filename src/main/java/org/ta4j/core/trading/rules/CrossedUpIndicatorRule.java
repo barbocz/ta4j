@@ -159,6 +159,8 @@ public class CrossedUpIndicatorRule extends AbstractRule {
 
         }
 
+        if (satisfied && isLogNeeded)  tradeEngine.logStrategy.logRule(this,time,indexForFirst,satisfied);
+
         return satisfied;
 
     }
@@ -178,11 +180,19 @@ public class CrossedUpIndicatorRule extends AbstractRule {
 
     @Override
     public String getParameters() {
-        if (cross.getUp() instanceof ConstantIndicator) {
-            ConstantIndicator constantIndicator=(ConstantIndicator)cross.getUp();
-            return getClass().getSimpleName() + "(" + this.cross.getLow().getClass().getSimpleName() + "," + constantIndicator.getConstant() + "," + shift + ")";
-        }
-        return getClass().getSimpleName()+"("+this.cross.getLow().getClass().getSimpleName()+","+this.cross.getUp().getClass().getSimpleName()+","+shift+")";
+
+        String info=getClass().getSimpleName();
+        info+=" ("+first.getClass().getSimpleName()+" M"+first.getTimeSeries().getPeriod();
+        if (second!=null) info+=", "+second.getClass().getSimpleName()+" M"+second.getTimeSeries().getPeriod()+")";
+        else info+=")";
+        if (shift>0) info+=" in "+shift;
+        return info;
+
+//        if (cross.getUp() instanceof ConstantIndicator) {
+//            ConstantIndicator constantIndicator=(ConstantIndicator)cross.getUp();
+//            return getClass().getSimpleName() + "(" + this.cross.getLow().getClass().getSimpleName() + "," + constantIndicator.getConstant() + "," + shift + ")";
+//        }
+//        return getClass().getSimpleName()+"("+this.cross.getLow().getClass().getSimpleName()+","+this.cross.getUp().getClass().getSimpleName()+","+shift+")";
     }
 
 

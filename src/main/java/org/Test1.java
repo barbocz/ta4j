@@ -6,6 +6,7 @@ import org.strategy.TimeSeriesRepo;
 import org.strategy.TradeEngine;
 import org.strategy.myEntryStrategies.*;
 import org.strategy.myExitStrategies.*;
+import org.strategy.myExitStrategies.Dummy;
 import org.ta4j.core.Bar;
 import org.ta4j.core.TimeSeries;
 
@@ -14,6 +15,7 @@ import java.io.*;
 
 public class Test1 {
     public static void main(String[] args) throws Exception {
+
 
 //        File srcFile=new File(System.getProperty("user.dir") + "\\ta4j-core\\log\\85_bars.csv");
 //        File dstFile=new File("C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\294B6FCE6F709DE82DA4C87FDBF1DE36\\MQL4\\Files\\85_bars.csv");
@@ -30,17 +32,18 @@ public class Test1 {
 //        }
 
 
-//
+        String backTestFileName="smallBacktestEUR.csv";
+//        backTestFileName="backtestEUR.csv";
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("USDJPY","backTestJPY.csv","yyyy.MM.dd HH:mm");
-//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
-        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTestEUR.csv","yyyy.MM.dd HH:mm");
-//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","backTest.csv","yyyy.MM.dd HH:mm");
+        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD",backTestFileName,"yyyy.MM.dd HH:mm");
+//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","smallBb"yyyy.MM.dd HH:mm");
 
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("GBPUSD","backTestGBP.csv","yyyy.MM.dd HH:mm");
 
         long startTime = System.currentTimeMillis();
-        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.BASIC);
+        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit_v2(),null, TradeEngine.LogLevel.EXTENDED);
+//        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.EXTENDED);
         System.out.println(tradeEngine.series.getSymbol());
 //
         tradeEngine.initStrategy();

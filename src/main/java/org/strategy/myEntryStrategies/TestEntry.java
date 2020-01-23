@@ -44,9 +44,9 @@ public class TestEntry extends Strategy {
 //        MurrayMathIndicator murrayMathIndicator6= new MurrayMathIndicator(tradeEngine.series,256,6);
 
 
-        KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 14);
-        kcU = new KeltnerChannelUpperIndicator(kcM, 1, 14);
-        kcL = new KeltnerChannelLowerIndicator(kcM, 1, 14);
+        KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 8);
+        kcU = new KeltnerChannelUpperIndicator(kcM, 0.6, 8);
+        kcL = new KeltnerChannelLowerIndicator(kcM, 0.6, 8);
 
 //        KeltnerChannelMiddleIndicator kcM8 = new KeltnerChannelMiddleIndicator(tradeEngine.getTimeSeries(60), 34);
 //        KeltnerChannelUpperIndicator kcU8 = new KeltnerChannelUpperIndicator(kcM8, 3.4, 34);
@@ -78,11 +78,11 @@ public class TestEntry extends Strategy {
 //
 //        ruleForSell=closePriceOverKeltnerUpperIn8.and(closePriceOverKeltnerMiddle).and(chaikinOver0_4in8).and(noTradeOpen);
 
-        ruleForSell = new OverIndicatorRule(closePrice, kcU, 8);
+//        ruleForSell = new OverIndicatorRule(closePrice, kcU, 13);
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(longCci,cciUpperLimit ));
 
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU8, 3));
-        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcM));
+        ruleForSell = new OverIndicatorRule(closePrice, kcM);
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.4, 8));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 98, 8));
 //        ruleForSell = ruleForSell.and(new IsFallingRule(emaIndicator, 1, 1.0));
@@ -94,12 +94,12 @@ public class TestEntry extends Strategy {
 
 
 
-        ruleForBuy = new UnderIndicatorRule(closePrice, kcL, 8);
+//        ruleForBuy = new UnderIndicatorRule(closePrice, kcL, 13);
 //        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(closePrice, kcL));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(longCci, cciLowerLimit));
 
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL8, 3     ));
-        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcM));
+        ruleForBuy = new UnderIndicatorRule(closePrice, kcM);
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.4, 8));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(moneyFlowIndicator, 2, 8));
 //        ruleForBuy = ruleForBuy.and(new IsRisingRule(emaIndicator, 1, 1.0));

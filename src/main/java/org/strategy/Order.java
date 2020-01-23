@@ -83,6 +83,8 @@ public class Order implements Cloneable {
     public double mt4OpenPrice=0.0,mt4NewOpenPrice=0.0,mt4ClosePrice=0.0,mt4Profit=0.0;
     public String mt4Comment="";
 
+    public boolean forcedClose=false;   // ha true akkor nem hívódik meg az Exit stratégia onExitEvent-je, hanem simán bezárásra kerül
+
     public Object clone()throws CloneNotSupportedException{
         return (Order)super.clone();
     }

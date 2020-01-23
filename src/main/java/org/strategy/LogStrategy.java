@@ -40,7 +40,7 @@ public class LogStrategy {
     public List<Indicator> indicatorsForLog = new ArrayList<>();
     public List<Rule> rulesForLog = new ArrayList<>();
 
-    BufferedWriter logFileForBars, logFileForExitLevels;
+    BufferedWriter logFileForBars, logFileForExitLevels,logFileForTradeSignals;
     String logFileNameForBars, logFileNameForExitLevels;
     TradeEngine tradeEngine;
     boolean online = false;
@@ -50,6 +50,8 @@ public class LogStrategy {
     DecimalFormat decimalFormatWith2Dec, decimalFormatWith5Dec;
 
     StringBuffer lastExitPrice = new StringBuffer("");
+    StringBuffer tradeSignalsContent = new StringBuffer("");
+    int tradeSignalIndex=0;
 
     PreparedStatement insertTrade, updateTrade, insertEvaluation, updateStrategy;
 
@@ -565,9 +567,26 @@ public class LogStrategy {
         if (tradeEngine.logLevel.ordinal() > TradeEngine.LogLevel.BASIC.ordinal())
             logIndicatorValue(timeFrame, tradeEngine.series.getCurrentTime());
         if (tradeEngine.logLevel == TradeEngine.LogLevel.TOTAL && tradeEngine.timeFrame==timeFrame) logExitPrices();
-
+        if (tradeEngine.logLevel == TradeEngine.LogLevel.ANALYSE && tradeEngine.timeFrame==timeFrame) logForAnalyzing();
 
 //        System.out.println("++++ "+tradeEngine.series.toString(tradeEngine.series.getCurrentBar()));
+    }
+
+    void logForAnalyzing(){
+        ZonedDateTime time = tradeEngine.series.getCurrentTime();
+        for (Rule rule : tradeEngine.entryStrategy.ruleForSell.getRuleSet()) rule.isSatisfied(time);
+        for (Rule rule : tradeEngine.entryStrategy.ruleForBuy.getRuleSet()) rule.isSatisfied(time);
+        if (tradeEngine.entryStrategy.ruleForSell.isSatisfied(time)) {
+            tradeSignalsContent.append(tradeSignalIndex).append("|SELL|").append(dateTimeFormatter.format(time)).append("|").append(tradeEngine.timeSeriesRepo.bid).
+                    append("|").append(dateTimeFormatter.format(time)).append("|NULL|NULL\r\n");
+            tradeSignalIndex++;
+        }
+        if (tradeEngine.entryStrategy.ruleForBuy.isSatisfied(time)) {
+            tradeSignalsContent.append(tradeSignalIndex).append("|BUY|").append(dateTimeFormatter.format(time)).append("|").append(tradeEngine.timeSeriesRepo.bid).
+                    append("|").append(dateTimeFormatter.format(time)).append("|NULL|NULL\r\n");
+            tradeSignalIndex++;
+        }
+
     }
 
 
@@ -755,6 +774,12 @@ public class LogStrategy {
             rs.close();
             fileWriter.write(fileContent.toString());
             fileWriter.close();
+
+            if (tradeEngine.logLevel== TradeEngine.LogLevel.ANALYSE && tradeSignalsContent.length()>0) {
+                fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaTradeFileDir + "log4J_tradeSignals.csv"), "UTF8"));
+                fileWriter.write(tradeSignalsContent.toString());
+                fileWriter.close();
+            }
 
             fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(metaTradeTesterFileDir + "log4J_trades.csv"), "UTF8"));
             fileWriter.write(fileContent.toString());

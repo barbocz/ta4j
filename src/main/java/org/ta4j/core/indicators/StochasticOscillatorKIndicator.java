@@ -27,6 +27,7 @@ import org.ta4j.core.Indicator;
 import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.helpers.*;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
+import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
 
 
@@ -41,14 +42,20 @@ public class StochasticOscillatorKIndicator extends CachedIndicator<Num> {
     private final Indicator<Num> indicator;
 
     private final int barCount;
+    private final int slowing=5;
 
     private HighPriceIndicator highPriceIndicator;
 
     private LowPriceIndicator lowPriceIndicator;
+    private ClosePriceIndicator closePriceIndicator;
+    HighestValueIndicator highestHigh;
+    LowestValueIndicator lowestMin;
 
     public StochasticOscillatorKIndicator(TimeSeries timeSeries, int barCount) {
+
         this(new ClosePriceIndicator(timeSeries), barCount, new HighPriceIndicator(timeSeries), new LowPriceIndicator(
                 timeSeries));
+        closePriceIndicator=new ClosePriceIndicator(timeSeries);
     }
 
     public StochasticOscillatorKIndicator(Indicator<Num> indicator, int barCount,
@@ -58,19 +65,40 @@ public class StochasticOscillatorKIndicator extends CachedIndicator<Num> {
         this.barCount = barCount;
         this.highPriceIndicator = highPriceIndicator;
         this.lowPriceIndicator = lowPriceIndicator;
+        highestHigh = new HighestValueIndicator(highPriceIndicator, barCount);
+        lowestMin = new LowestValueIndicator(lowPriceIndicator, barCount);
+
     }
 
     @Override
     protected Num calculate(int index) {
-        HighestValueIndicator highestHigh = new HighestValueIndicator(highPriceIndicator, barCount);
-        LowestValueIndicator lowestMin = new LowestValueIndicator(lowPriceIndicator, barCount);
 
-        Num highestHighPrice = highestHigh.getValue(index);
-        Num lowestLowPrice = lowestMin.getValue(index);
 
-        return indicator.getValue(index).minus(lowestLowPrice)
-                .dividedBy(highestHighPrice.minus(lowestLowPrice))
-                .multipliedBy(numOf(100));
+//        HighestValueIndicator highestHigh = new HighestValueIndicator(highPriceIndicator, barCount);
+//        LowestValueIndicator lowestMin = new LowestValueIndicator(lowPriceIndicator, barCount);
+//
+//        Num highestHighPrice = highestHigh.getValue(index);
+//        Num lowestLowPrice = lowestMin.getValue(index);
+//
+//        return indicator.getValue(index).minus(lowestLowPrice)
+//                .dividedBy(highestHighPrice.minus(lowestLowPrice))
+//                .multipliedBy(numOf(100));
+
+        Num sumLow= DoubleNum.valueOf(0.0);
+        Num sumHigh= DoubleNum.valueOf(0.0);
+
+        Num lowestLowPrice;
+        if (index<slowing) return DoubleNum.valueOf(0.0);
+        for (int i = index-slowing; i <= index; i++) {
+
+            lowestLowPrice = lowestMin.getValue(i);
+
+            sumLow=sumLow.plus(closePriceIndicator.getValue(i).minus(lowestLowPrice));
+            sumHigh=sumHigh.plus(highestHigh.getValue(i).minus(lowestLowPrice));
+        }
+        if (sumHigh.isEqual(DoubleNum.valueOf(0.0))) return DoubleNum.valueOf(100.0);
+        else return sumLow.dividedBy(sumHigh).multipliedBy( DoubleNum.valueOf(100.0));
+
     }
 
     @Override

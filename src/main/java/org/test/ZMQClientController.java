@@ -80,20 +80,20 @@ public class ZMQClientController {
 //        TRADE|OPEN|1|EURUSD|0.1|0|0|R-to-MetaTrader4|12345678
         JSONObject orderDetails = new JSONObject();
         orderDetails.put("time", zdtFormatter.format(Instant.now().atZone(ZoneId.of("Etc/GMT-2"))));
-        orderDetails.put("action", "TRADE_OPEN");
+//        orderDetails.put("action", "TRADE_OPEN");
 //        orderDetails.put("action", "TRADE_CLOSE");
 //        orderDetails.put("action", "TRADE_CLOSE_ALL");
 //        orderDetails.put("action", "GET_OPEN_ORDERS");
-//        orderDetails.put("action", "TRADE_CLOSE_PARTIAL");
+        orderDetails.put("action", "TRADE_CLOSE_PARTIAL");
 
 
 
-        orderDetails.put("type", 0);
-        orderDetails.put("symbol", "EURUSD");
-        orderDetails.put("lot", 0.2);
-//        orderDetails.put("stopLoss", 0.0);
-//        orderDetails.put("takeProfit", 1.117);
-        orderDetails.put("ticketNumber", 138588110);
+//        orderDetails.put("type", 0);
+//        orderDetails.put("symbol", "EURUSD");
+        orderDetails.put("lot", 0.14);
+////        orderDetails.put("stopLoss", 0.0);
+////        orderDetails.put("takeProfit", 1.117);
+        orderDetails.put("ticketNumber", 138805259);
 //        orderDetails.put("magicNumber", 12345);
 //        orderDetails.put("comment", "txt 1234");
 
