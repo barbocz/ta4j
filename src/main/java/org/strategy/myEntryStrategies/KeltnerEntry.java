@@ -3,6 +3,7 @@ package org.strategy.myEntryStrategies;
 import org.strategy.Order;
 import org.strategy.Strategy;
 import org.ta4j.core.indicators.*;
+import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.indicators.helpers.AvgIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.MedianPriceIndicator;
@@ -44,7 +45,8 @@ public class KeltnerEntry extends Strategy {
 //        KeltnerChannelLowerIndicator kcL60 = new KeltnerChannelLowerIndicator(kcM60, 1.3, 8);
 
         ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 5);
-//        AvgIndicator avgIndicator=new AvgIndicator(chaikinIndicator,5);
+//        ADXIndicator adxIndicator = new ADXIndicator(tradeEngine.series, 3);
+//        AvgIndicator avgAdxIndicator=new AvgIndicator(adxIndicator,8);
 
 //        TradeCounterIndicator tradeCounterIndicator=new TradeCounterIndicator(tradeEngine);
         CCIIndicator cciIndicator = new CCIIndicator(tradeEngine.series, 30);
@@ -80,7 +82,8 @@ public class KeltnerEntry extends Strategy {
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU));
         ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.42, 6));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 98, 8));
-//        ruleForSell = ruleForSell.and(new IsFallingRule(avgIndicator, true));
+//        ruleForSell = ruleForSell.and(new IsFallingRule(avgAdxIndicator, true));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(avgAdxIndicator,75.0));
         ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,5));
 
 //        ruleForSell = ruleForSell.or(new OverIndicatorRule(cciIndicator,tradeEngine.series.numOf(220)).
@@ -96,6 +99,8 @@ public class KeltnerEntry extends Strategy {
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL8, 3     ));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL));
         ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.42, 6));
+//        ruleForBuy = ruleForBuy.and(new IsFallingRule(avgAdxIndicator, true));
+//        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(avgAdxIndicator,75.0));
 //        ruleForBuy = ruleForBuy.and(new IsRisingRule(kamaIndicator,true));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(moneyFlowIndicator, 2, 8));
 //        ruleForBuy = ruleForBuy.and(new IsRisingRule(avgIndicator, true));
@@ -148,8 +153,8 @@ public class KeltnerEntry extends Strategy {
 
 
 
-        chaikinIndicator.subWindowIndex=5;
-        tradeEngine.log(chaikinIndicator);
+//        avgAdxIndicator.subWindowIndex=5;
+//        tradeEngine.log(avgAdxIndicator);
 
         kcL.indicatorColor=Color.WHITE;
         tradeEngine.log(kcL);

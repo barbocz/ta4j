@@ -32,7 +32,7 @@
 
         </TableView>
         <Label layoutX="14.0" layoutY="240.0" prefHeight="17.0" prefWidth="53.0" text="Entry:" />
-      <TextField fx:id="entryStrategyName" layoutX="50.0" layoutY="236.0" text="KeltnerEntr" />
+      <TextField fx:id="entryStrategyName" layoutX="50.0" layoutY="236.0" text="KeltnerEntry" />
         <Label layoutX="254.0" layoutY="240.0" prefHeight="17.0" prefWidth="53.0" text="Exit:" />
       <TextField fx:id="exitStrategyName" layoutX="281.0" layoutY="236.0" text="KeltnerExit" />
       <Button layoutX="442.0" layoutY="236.0" mnemonicParsing="false" onAction="#addStrategy" prefHeight="25.0" prefWidth="86.0" text="Add Strategy" />

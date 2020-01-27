@@ -80,6 +80,7 @@ public class TradeEngine {
 
     JSONParser jsonParser = new JSONParser();
     boolean openOrdersWereClosedBeforeMt4Trading=false;
+    double mt4Profit=0.0;
 
     public enum ExitMode {
         TAKEPROFIT,
@@ -366,7 +367,10 @@ public class TradeEngine {
                 if (order.profit < 0.0) losingTrade++;
 
 
-                if (order.mt4TicketNumber>0) mt4CloseOrder(order);
+                if (order.mt4TicketNumber>0) {
+                    mt4CloseOrder(order);
+                    mt4Profit+=order.mt4Profit;
+                }
                 Order closedOrder = (Order) order.clone();
 
                 if (logLevel != LogLevel.NONE) logStrategy.logTrade(false, closedOrder);
@@ -405,7 +409,7 @@ public class TradeEngine {
                     @Override
                     public void run() {
 
-                        tradeCenter.updateBalance(logStrategy.id, balance);
+                        tradeCenter.updateBalance(logStrategy.id, mt4Profit);
                     }
                 });
             }
