@@ -70,7 +70,7 @@ public class KeltnerExit extends Strategy {
 
     @Override
     public void onExitEvent(Order order) {
-        if (order.closePhase == 0 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0) {
+        if (order.closePhase == 0 ) {
             order.closedAmount = order.openedAmount / 2.0;
             order.closePhase = 1;
             if (order.type == Order.Type.BUY) {
@@ -88,7 +88,7 @@ public class KeltnerExit extends Strategy {
         if (tradeEngine.timeFrame == timeFrame) {
             double atrValueCorrection =  atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
             double atrValueLimit = 5.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-            double atrStopLoss = 1.3 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
+            double atrStopLoss = 1.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
             for (Order order : tradeEngine.openedOrders) {
 
                 if (order.closePhase == 0) {
@@ -112,10 +112,13 @@ public class KeltnerExit extends Strategy {
                     }
 
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 21)
-                        if (order.type == Order.Type.BUY) atrValueCorrection=0.05 * atrValueCorrection;
-                        else atrValueCorrection=-0.05 * atrValueCorrection;
-                            tradeEngine.setExitPrice(order, order.openPrice+atrValueCorrection, TradeEngine.ExitMode.ANY, true);
+                    if (tradeEngine.series.getCurrentIndex() - openIndex > 14)
+                    {
+                        if (order.type == Order.Type.BUY) atrValueCorrection = 0.1 * atrValueCorrection;
+                        else atrValueCorrection = -0.1 * atrValueCorrection;
+                        tradeEngine.setExitPrice(order, order.openPrice+atrValueCorrection, TradeEngine.ExitMode.ANY, true);
+                    }
+
                 } else {
                     if (order.type == Order.Type.BUY) {
                         tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
@@ -124,8 +127,12 @@ public class KeltnerExit extends Strategy {
                     }
 
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 34)
-                        tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
+                    if (tradeEngine.series.getCurrentIndex() - openIndex >14)
+                    {
+                        if (order.type == Order.Type.BUY) atrValueCorrection = 0.1 * atrValueCorrection;
+                        else atrValueCorrection = -0.1 * atrValueCorrection;
+                        tradeEngine.setExitPrice(order, order.openPrice+atrValueCorrection, TradeEngine.ExitMode.ANY, true);
+                    }
 
                 }
 

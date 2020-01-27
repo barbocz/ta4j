@@ -114,6 +114,7 @@ public class IsFallingRule extends AbstractRule {
         int index = timeSeriesRepo.getIndex(time, period);
         if (index < 0) return false;
 
+
         if (minStrenght >= 1) {
             minStrenght = 0.99;
         }

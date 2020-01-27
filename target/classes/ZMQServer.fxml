@@ -32,9 +32,9 @@
 
         </TableView>
         <Label layoutX="14.0" layoutY="240.0" prefHeight="17.0" prefWidth="53.0" text="Entry:" />
-      <TextField fx:id="entryStrategyName" layoutX="50.0" layoutY="236.0" text="TestEntry" />
+      <TextField fx:id="entryStrategyName" layoutX="50.0" layoutY="236.0" text="KeltnerEntryProven" />
         <Label layoutX="254.0" layoutY="240.0" prefHeight="17.0" prefWidth="53.0" text="Exit:" />
-      <TextField fx:id="exitStrategyName" layoutX="281.0" layoutY="236.0" text="TestExit" />
+      <TextField fx:id="exitStrategyName" layoutX="281.0" layoutY="236.0" text="KeltnerExitProven" />
       <Button layoutX="442.0" layoutY="236.0" mnemonicParsing="false" onAction="#addStrategy" prefHeight="25.0" prefWidth="86.0" text="Add Strategy" />
       <Button layoutX="773.0" layoutY="236.0" mnemonicParsing="false" onAction="#test" text="Teszt" />
         <Button layoutX="820.0" layoutY="236.0" mnemonicParsing="false" onAction="#checkOnMt4" text="Check on MT4" />

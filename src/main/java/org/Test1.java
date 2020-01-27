@@ -33,7 +33,7 @@ public class Test1 {
 
 
         String backTestFileName="smallBacktestEUR.csv";
-//        backTestFileName="backtestEUR.csv";
+        backTestFileName="backtestEUR.csv";
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("USDJPY","backTestJPY.csv","yyyy.MM.dd HH:mm");
         TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD",backTestFileName,"yyyy.MM.dd HH:mm");
@@ -42,7 +42,7 @@ public class Test1 {
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("GBPUSD","backTestGBP.csv","yyyy.MM.dd HH:mm");
 
         long startTime = System.currentTimeMillis();
-        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit_v2(),null, TradeEngine.LogLevel.EXTENDED);
+            TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.EXTENDED);
 //        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.EXTENDED);
         System.out.println(tradeEngine.series.getSymbol());
 //

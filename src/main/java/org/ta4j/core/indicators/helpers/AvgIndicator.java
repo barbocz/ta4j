@@ -24,38 +24,43 @@
 package org.ta4j.core.indicators.helpers;
 
 import org.ta4j.core.Indicator;
-import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.num.Num;
 
 /**
- * Average high-low indicator.
+ * Sum indicator.
  * </p>
+ * I.e.: operand0 + operand1 + ... + operandN
  */
-public class MedianPriceIndicator extends CachedIndicator<Num> {
+public class AvgIndicator extends CachedIndicator<Num> {
 
-    private final Indicator<Num> first;
-    private final Indicator<Num> second;
+    private final Indicator<Num>[] operands;
+    private final Indicator<Num> indicator;
+    private final int barCount;
+    private final Num divisor;
 
-    public MedianPriceIndicator(TimeSeries series) {
-        super(series);
-        first=null;
-        second=null;
 
-    }
 
-    public MedianPriceIndicator(Indicator<Num> first, Indicator<Num> second) {
-        // TODO: check if first series is equal to second one
-        super(first);
-        this.first = first;
-        this.second = second;
+    public AvgIndicator(Indicator<Num> indicator, int barCount) {
+        super(indicator);
+        this.operands = null;
+        this.indicator = indicator;
+        this.barCount=barCount;
+        this.divisor=numOf(barCount);
     }
 
     @Override
     protected Num calculate(int index) {
-        if (first==null)
-        return getTimeSeries().getBar(index).getHighPrice().plus(getTimeSeries().getBar(index).getLowPrice())
-                .dividedBy(numOf(2));
-        else return first.getValue(index).plus(second.getValue(index)).dividedBy(numOf(2.0));
+        Num sum = numOf(0);
+
+
+        int end = Math.max(0, index - barCount +1);
+        Num lowest = indicator.getValue(index);
+        for (int i = index ; i >= end; i--) {
+            sum = sum.plus(indicator.getValue(i));
+        }
+
+
+        return sum.dividedBy(divisor);
     }
 }
