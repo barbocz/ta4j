@@ -133,8 +133,13 @@ public class UnderIndicatorRule extends AbstractRule {
     public boolean isSatisfied (ZonedDateTime time) {
         boolean satisfied=false;
 
+        boolean sameTimeFrame=false;
+
+
         int indexForFirst=timeSeriesRepo.getIndex(time,periodForFirst);
         int indexForSecond=timeSeriesRepo.getIndex(time,periodForSecond);
+        if (indexForFirst==indexForSecond) sameTimeFrame=true;
+
         if (indexForFirst>0 && indexForSecond>0) {
 
             Num valueForSecond = second.getValue(indexForSecond);
@@ -148,6 +153,7 @@ public class UnderIndicatorRule extends AbstractRule {
                 for (int i = 0; i < shift; i++) {   // shift mindig az első indikátor indexére vonatkozik
 
                     if (indexForFirst - i > -1) {
+                        if (sameTimeFrame) valueForSecond=second.getValue(indexForSecond - i);
                         if (first.getValue(indexForFirst - i).isLessThan(valueForSecond)) {
                             if (satisfactionRatio == 0.0) {
                                 satisfied = true;

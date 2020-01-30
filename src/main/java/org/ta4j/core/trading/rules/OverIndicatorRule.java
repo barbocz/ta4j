@@ -28,7 +28,9 @@ import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.helpers.ConstantIndicator;
 import org.ta4j.core.num.Num;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Indicator-over-indicator rule.
@@ -137,9 +139,13 @@ public class OverIndicatorRule extends AbstractRule {
     @Override
     public boolean isSatisfied(ZonedDateTime time) {
         boolean satisfied=false;
+        boolean sameTimeFrame=false;
+
 
         int indexForFirst=timeSeriesRepo.getIndex(time,periodForFirst);
         int indexForSecond=timeSeriesRepo.getIndex(time,periodForSecond);
+        if (indexForFirst==indexForSecond) sameTimeFrame=true;
+
         if (indexForFirst>-1 && indexForSecond>-1) {
             Num valueForSecond = second.getValue(indexForSecond);
 //        System.out.println(first.getValue(indexForFirst)+" - "+second.getValue(indexForSecond));
@@ -154,6 +160,9 @@ public class OverIndicatorRule extends AbstractRule {
                 for (int i = 0; i < shift; i++) {   // shift mindig az első indikátor indexére vonatkozik
 
                     if (indexForFirst - i > -1) {
+
+                        if (sameTimeFrame) valueForSecond=second.getValue(indexForSecond - i);
+
                         if (first.getValue(indexForFirst - i).isGreaterThan(valueForSecond)) {
                             if (satisfactionRatio == 0.0) {
                                 satisfied = true;

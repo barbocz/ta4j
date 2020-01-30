@@ -2,24 +2,34 @@ package org.strategy.myEntryStrategies;
 
 import org.strategy.Order;
 import org.strategy.Strategy;
-import org.ta4j.core.indicators.*;
+import org.ta4j.core.indicators.CCIIndicator;
+import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.adx.ADXIndicator;
-import org.ta4j.core.indicators.helpers.AvgIndicator;
+import org.ta4j.core.indicators.adx.MinusDIIndicator;
+import org.ta4j.core.indicators.adx.PlusDIIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.indicators.helpers.MedianPriceIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
+import org.ta4j.core.indicators.mt4Selection.AntiAlligatorIndicator;
 import org.ta4j.core.indicators.mt4Selection.WaddahIndicator;
+import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.num.Num;
-import org.ta4j.core.trading.rules.*;
+import org.ta4j.core.trading.rules.CrossedDownIndicatorRule;
+import org.ta4j.core.trading.rules.OrderConditionRule;
+import org.ta4j.core.trading.rules.OverIndicatorRule;
+import org.ta4j.core.trading.rules.UnderIndicatorRule;
 
 import java.awt.*;
 import java.time.ZonedDateTime;
 
-
-public class KeltnerEntry extends Strategy {
+// KeltnerExit-tel használni!!!
+public class BollingerEntryProven extends Strategy {
 
     boolean buyOk=false,sellOk=false;
     double buyLimit,sellLimit;
@@ -31,7 +41,6 @@ public class KeltnerEntry extends Strategy {
     public void init(){
 
         ClosePriceIndicator closePrice = new ClosePriceIndicator(tradeEngine.series);
-        MedianPriceIndicator medianPriceIndicator=new MedianPriceIndicator(tradeEngine.series);
 
 //        MurrayMathIndicator murrayMathIndicator0= new MurrayMathIndicator(tradeEngine.series,256,0);
 //        MurrayMathIndicator murrayMathIndicator12= new MurrayMathIndicator(tradeEngine.series,256,12);
@@ -39,8 +48,20 @@ public class KeltnerEntry extends Strategy {
 
 
         KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 54);
-        kcU = new KeltnerChannelUpperIndicator(kcM, 2.6, 54);
-        kcL = new KeltnerChannelLowerIndicator(kcM, 2.6, 54);
+        kcU = new KeltnerChannelUpperIndicator(kcM, 2.0, 54);
+        kcL = new KeltnerChannelLowerIndicator(kcM, 2.0, 54);
+
+
+        SMAIndicator smaIndicator=new SMAIndicator(closePrice,20);
+        BollingerBandsMiddleIndicator bollingerBandsMiddleIndicator=new BollingerBandsMiddleIndicator(smaIndicator);
+        StandardDeviationIndicator standardDeviationIndicator=new StandardDeviationIndicator(closePrice,20);
+        BollingerBandsLowerIndicator bollingerBandsLowerIndicator=new BollingerBandsLowerIndicator(bollingerBandsMiddleIndicator,standardDeviationIndicator,1.6);
+        BollingerBandsUpperIndicator bollingerBandsUpperIndicator=new BollingerBandsUpperIndicator(bollingerBandsMiddleIndicator,standardDeviationIndicator,1.6);
+
+        PlusDIIndicator plusDIIndicator = new PlusDIIndicator(tradeEngine.series, 4);
+        MinusDIIndicator minusDIIndicator = new MinusDIIndicator(tradeEngine.series, 4);
+        ADXIndicator adxIndicator = new ADXIndicator(tradeEngine.series, 5);
+
 
 //        KeltnerChannelMiddleIndicator kcM60 = new KeltnerChannelMiddleIndicator(tradeEngine.getTimeSeries(60), 8);
 //        KeltnerChannelUpperIndicator kcU60 = new KeltnerChannelUpperIndicator(kcM60, 1.3, 8);
@@ -60,7 +81,7 @@ public class KeltnerEntry extends Strategy {
         Num cciUpperLimit = tradeEngine.series.numOf(250);
         Num cciLowerLimit = tradeEngine.series.numOf(-250);
 
-        EMAIndicator emaIndicator=new EMAIndicator(medianPriceIndicator,2);
+        EMAIndicator emaIndicator=new EMAIndicator(closePrice,8);
 
 //        KAMAIndicator kamaIndicator = new KAMAIndicator(closePrice,5,2,30);
 
@@ -77,17 +98,15 @@ public class KeltnerEntry extends Strategy {
 //
 //        ruleForSell=closePriceOverKeltnerUpperIn8.and(closePriceOverKeltnerMiddle).and(chaikinOver0_4in8).and(noTradeOpen);
 
+        ruleForSell = new OverIndicatorRule(closePrice, bollingerBandsUpperIndicator, 8);
+        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice,kcU,8 ));
 
-
-        ruleForSell = new OverIndicatorRule(closePrice, kcU, 8);
-
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice,kcU60 ));
 //        ruleForSell = ruleForSell.and(new IsFallingRule(kamaIndicator,true));
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU8, 3));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(minusDIIndicator,plusDIIndicator));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU));
         ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.42, 6));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 98, 8));
-//        ruleForSell = ruleForSell.and(new IsFallingRule(emaIndicator, true));
+//        ruleForSell = ruleForSell.and(new IsFallingRule(avgAdxIndicator, true));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(avgAdxIndicator,75.0));
         ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,5));
 
@@ -97,19 +116,19 @@ public class KeltnerEntry extends Strategy {
 
 
 //        ruleForBuy = new IsRisingRule(avgIndicator, true);
-        ruleForBuy = new UnderIndicatorRule(closePrice, kcL, 8);
-//        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(closePrice, kcL60));
+        ruleForBuy = new UnderIndicatorRule(closePrice, bollingerBandsLowerIndicator, 8);
+        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(closePrice, kcL,8));
+//        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(plusDIIndicator, minusDIIndicator));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(longCci, cciLowerLimit));
 
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL8, 3     ));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL));
         ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.42, 6));
-
 //        ruleForBuy = ruleForBuy.and(new IsFallingRule(avgAdxIndicator, true));
 //        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(avgAdxIndicator,75.0));
 //        ruleForBuy = ruleForBuy.and(new IsRisingRule(kamaIndicator,true));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(moneyFlowIndicator, 2, 8));
-//        ruleForBuy = ruleForBuy.and(new IsRisingRule(emaIndicator, true));
+//        ruleForBuy = ruleForBuy.and(new IsRisingRule(avgIndicator, true));
         ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL,5));
 //        ruleForBuy = ruleForBuy.or(new UnderIndicatorRule(cciIndicator,tradeEngine.series.numOf(-220)).
 //                and(new hasOpenOrder(tradeEngine, hasOpenOrder.OpenedOrderType.ONLY_BUY)).and(new OverIndicatorRule(closePrice,kcL)));
@@ -121,23 +140,31 @@ public class KeltnerEntry extends Strategy {
         // log:
 
 
+        bollingerBandsMiddleIndicator.indicatorColor=Color.ORANGE;
+        tradeEngine.log(bollingerBandsMiddleIndicator);
+
+        bollingerBandsLowerIndicator.indicatorColor=Color.RED;
+        tradeEngine.log(bollingerBandsLowerIndicator);
+
+        bollingerBandsUpperIndicator.indicatorColor=Color.GREEN;
+        tradeEngine.log(bollingerBandsUpperIndicator);
 
 
 
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);
 
-        emaIndicator.indicatorColor=Color.RED;
-        tradeEngine.log(emaIndicator);
-
-        kcU.indicatorColor=Color.WHITE;
-        tradeEngine.log(kcU);
-
-        kcM.indicatorColor=Color.WHITE;
-        tradeEngine.log(kcM);
-
-        kcL.indicatorColor=Color.WHITE;
-        tradeEngine.log(kcL);
+//        emaIndicator.indicatorColor=Color.RED;
+//        tradeEngine.log(emaIndicator);
+//
+//        kcU.indicatorColor=Color.WHITE;
+//        tradeEngine.log(kcU);
+//
+//        kcM.indicatorColor=Color.WHITE;
+//        tradeEngine.log(kcM);
+//
+//        kcL.indicatorColor=Color.WHITE;
+//        tradeEngine.log(kcL);
 
 //        kcU8.indicatorColor=Color.GRAY;
 //        tradeEngine.log(kcU8);
@@ -146,25 +173,43 @@ public class KeltnerEntry extends Strategy {
 //        tradeEngine.log(kcL8);
 
 
-        longCci.subWindowIndex=4;
-        tradeEngine.log(longCci);
+//        longCci.subWindowIndex=4;
+//        tradeEngine.log(longCci);
 
+//        plusDIIndicator.subWindowIndex=5;
+//        plusDIIndicator.indicatorColor=Color.GREEN;
+//        tradeEngine.log(plusDIIndicator);
+//
+//        minusDIIndicator.subWindowIndex=5;
+//        minusDIIndicator.indicatorColor=Color.RED;
+//        tradeEngine.log(minusDIIndicator);
 
+        AntiAlligatorIndicator antiAlligatorIndicator=new AntiAlligatorIndicator(tradeEngine.series);
+        antiAlligatorIndicator.subWindowIndex=5;
+        antiAlligatorIndicator.indicatorColor=Color.ORANGE;
+        tradeEngine.log(antiAlligatorIndicator);
 
-
-
-//        avgIndicator.subWindowIndex=5;
-//        avgIndicator.indicatorColor=Color.RED;
-//        tradeEngine.log(avgIndicator);
 
 //        testIndicator1.subWindowIndex=3;
 //        testIndicator1.indicatorColor=Color.RED;
 //        tradeEngine.log(testIndicator1);
+//
+//        WaddahIndicator waddahIndicatorUp=new WaddahIndicator(tradeEngine.series, WaddahIndicator.Type.TREND_UP);
+//        WaddahIndicator waddahIndicatorDown=new WaddahIndicator(tradeEngine.series, WaddahIndicator.Type.TREND_DOWN);
+//        WaddahIndicator waddahIndicatorExp=new WaddahIndicator(tradeEngine.series, WaddahIndicator.Type.EXPLOSION);
 
-
-
-//        avgAdxIndicator.subWindowIndex=5;
-//        tradeEngine.log(avgAdxIndicator);
+//
+//        waddahIndicatorUp.subWindowIndex=4;
+//        waddahIndicatorUp.indicatorColor=Color.GREEN;
+//        tradeEngine.log(waddahIndicatorUp);
+//
+//        waddahIndicatorDown.subWindowIndex=4;
+//        waddahIndicatorDown.indicatorColor=Color.RED;
+//        tradeEngine.log(waddahIndicatorDown);
+//
+//        waddahIndicatorExp.subWindowIndex=4;
+//        waddahIndicatorExp.indicatorColor=Color.ORANGE;
+//        tradeEngine.log(waddahIndicatorExp);
 
         kcL.indicatorColor=Color.WHITE;
         tradeEngine.log(kcL);

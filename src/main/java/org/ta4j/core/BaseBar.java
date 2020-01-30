@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.function.Function;
+import org.strategy.Order;
 
 /**
  * Base implementation of a {@link Bar}.
@@ -60,6 +61,8 @@ public class BaseBar implements Bar {
     /** Trade count */
     private int trades = 0;
 
+    private Order.Type orderType= Order.Type.HOLD;
+
     // Ezt már én raktam hozzá -----------------------------------------------
     public HashMap<String, Num[]> Mt4Indicator=new HashMap();
 
@@ -70,6 +73,12 @@ public class BaseBar implements Bar {
     public void addBuffer(String indicatorKey,Num[] value) {
         Mt4Indicator.put(indicatorKey,value);
     }
+
+    @Override
+    public void setOrderType(Order.Type orderType){this.orderType=orderType;};
+
+    @Override
+    public Order.Type getOrderType(){ return orderType;};
 
     /**
      * Constructor.

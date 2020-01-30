@@ -16,8 +16,14 @@ public class Order implements Cloneable {
                 return true;
             }
 
+            @Override
             public int mt4OrderType() {
                 return 0;
+            }
+
+            @Override
+            public boolean isHold() {
+                return false;
             }
         },
         SELL {
@@ -31,14 +37,43 @@ public class Order implements Cloneable {
                 return false;
             }
 
+            @Override
             public int mt4OrderType() {
                 return 1;
+            }
+
+            @Override
+            public boolean isHold() {
+                return false;
+            }
+        },
+        HOLD {
+
+            @Override
+            public Type complementType() {
+                return HOLD;
+            }
+
+            @Override
+            public boolean isBuy() {
+                return false;
+            }
+
+            @Override
+            public int mt4OrderType() {
+                return -1;
+            }
+
+            @Override
+            public boolean isHold() {
+                return true;
             }
         };
 
         public abstract Type complementType();
         public abstract boolean isBuy();
         public abstract int mt4OrderType();
+        public abstract boolean isHold();
     }
 
     public enum Status {

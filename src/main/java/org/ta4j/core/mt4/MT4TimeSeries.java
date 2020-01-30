@@ -754,12 +754,13 @@ public class MT4TimeSeries implements TimeSeries {
             }
             final int lastBarIndex = bars.size() - 1;
             ZonedDateTime seriesEndTime = bars.get(lastBarIndex).getEndTime();
-            if (!bar.getEndTime().isAfter(seriesEndTime)) {
+            if (seriesEndTime.isAfter(bar.getEndTime())) {   // eredeti :   !bar.getEndTime().isAfter(seriesEndTime)
                 throw new IllegalArgumentException(
                         String.format("Cannot add a bar with end time:%s that is <= to series end time: %s",
                                 bar.getEndTime(),
                                 seriesEndTime));
             }
+            if (seriesEndTime.equals(bar.getEndTime())) return;
         }
 
         bars.add(bar);
@@ -1075,7 +1076,7 @@ public class MT4TimeSeries implements TimeSeries {
                     dataPeriodSeconds = ChronoUnit.SECONDS.between(dateFormatter.parse(ohlcv.get(firstRowIndex)[0]).toInstant(),
                             dateFormatter.parse(ohlcv.get(firstRowIndex + 1)[0]).toInstant());
                     if (dataPeriodSeconds > barDurationSeconds) {
-                        throw new Exception("Incompatible data and timeFrame");
+                        throw new Exception("Incompatible data and timeFrame "+ohlcv.get(firstRowIndex + 1)[0]);
                     }
 //                    firstDate = dateFormatter.parse(ohlcv.get(firstRowIndex)[0]).toInstant();
                     firstDate = ZonedDateTime.parse(ohlcv.get(firstRowIndex)[0], zdtFormatter.withZone(ZoneId.systemDefault()));

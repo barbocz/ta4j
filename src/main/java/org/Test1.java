@@ -1,14 +1,10 @@
 package org;
 
-import org.strategy.LogStrategy;
-import org.strategy.Strategy;
 import org.strategy.TimeSeriesRepo;
 import org.strategy.TradeEngine;
 import org.strategy.myEntryStrategies.*;
 import org.strategy.myExitStrategies.*;
 import org.strategy.myExitStrategies.Dummy;
-import org.ta4j.core.Bar;
-import org.ta4j.core.TimeSeries;
 
 import java.io.*;
 //new line 2234
@@ -33,7 +29,8 @@ public class Test1 {
 
 
         String backTestFileName="smallBacktestEUR.csv";
-        backTestFileName="backtestEUR.csv";
+//        backTestFileName="smallestBacktestEUR.csv";
+//        backTestFileName="backtestEUR.csv";
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("USDJPY","backTestJPY.csv","yyyy.MM.dd HH:mm");
         TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD",backTestFileName,"yyyy.MM.dd HH:mm");
@@ -42,8 +39,8 @@ public class Test1 {
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("GBPUSD","backTestGBP.csv","yyyy.MM.dd HH:mm");
 
         long startTime = System.currentTimeMillis();
-            TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.BASIC);
-//        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.EXTENDED);
+            TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new MurrayMiddleEntry(),new Dummy(),null, TradeEngine.LogLevel.EXTENDED);
+//        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.BASIC);
         System.out.println(tradeEngine.series.getSymbol());
 //
         tradeEngine.initStrategy();

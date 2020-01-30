@@ -114,8 +114,8 @@ public class KeltnerExit extends Strategy {
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
                     if (tradeEngine.series.getCurrentIndex() - openIndex > 14)
                     {
-                        if (order.type == Order.Type.BUY) atrValueCorrection = 0.1 * atrValueCorrection;
-                        else atrValueCorrection = -0.1 * atrValueCorrection;
+                        if (order.type == Order.Type.BUY) atrValueCorrection = 0.3 * atrValueCorrection;
+                        else atrValueCorrection = -0.3 * atrValueCorrection;
                         tradeEngine.setExitPrice(order, order.openPrice+atrValueCorrection, TradeEngine.ExitMode.ANY, true);
                     }
 
@@ -129,8 +129,8 @@ public class KeltnerExit extends Strategy {
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
                     if (tradeEngine.series.getCurrentIndex() - openIndex >14)
                     {
-                        if (order.type == Order.Type.BUY) atrValueCorrection = 0.1 * atrValueCorrection;
-                        else atrValueCorrection = -0.1 * atrValueCorrection;
+                        if (order.type == Order.Type.BUY) atrValueCorrection = 0.3 * atrValueCorrection;
+                        else atrValueCorrection = -0.3 * atrValueCorrection;
                         tradeEngine.setExitPrice(order, order.openPrice+atrValueCorrection, TradeEngine.ExitMode.ANY, true);
                     }
 

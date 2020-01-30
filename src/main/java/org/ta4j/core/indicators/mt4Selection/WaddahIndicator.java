@@ -40,14 +40,14 @@ public class WaddahIndicator extends CachedIndicator<Num> {
         closePriceIndicator = new ClosePriceIndicator(series);
 
         if (type==Type.EXPLOSION) {
-            smaIndicator = new SMAIndicator(closePriceIndicator, 20);
-            standardDeviationIndicator = new StandardDeviationIndicator(closePriceIndicator, 20);
+            smaIndicator = new SMAIndicator(closePriceIndicator, 13);
+            standardDeviationIndicator = new StandardDeviationIndicator(closePriceIndicator, 13);
             bollingerBandsMiddleIndicator = new BollingerBandsMiddleIndicator(smaIndicator);
-            bollingerBandsLowerIndicator = new BollingerBandsLowerIndicator(bollingerBandsMiddleIndicator, standardDeviationIndicator, series.numOf(2));
-            bollingerBandsUpperIndicator = new BollingerBandsUpperIndicator(bollingerBandsMiddleIndicator, standardDeviationIndicator, series.numOf(2));
+            bollingerBandsLowerIndicator = new BollingerBandsLowerIndicator(bollingerBandsMiddleIndicator, standardDeviationIndicator, 2.6);
+            bollingerBandsUpperIndicator = new BollingerBandsUpperIndicator(bollingerBandsMiddleIndicator, standardDeviationIndicator, 2.6);
         } else {
             macdIndicator = new MACDIndicator(closePriceIndicator, 8, 16);
-            Sensitive = numOf(150.0);
+            Sensitive = numOf(250.0);
         }
     }
 
@@ -59,9 +59,9 @@ public class WaddahIndicator extends CachedIndicator<Num> {
         } else {
             Num trend1 = macdIndicator.getValue(index).minus(macdIndicator.getValue(index - 1)).multipliedBy(Sensitive);
             if (type==Type.TREND_UP) {
-                if (trend1.isGreaterThan(numOf(0.0))) return trend1; else return NaN.NaN;
+                if (trend1.isGreaterThan(numOf(0.0))) return trend1; else return numOf(0.0);
             } else {
-                if (trend1.isLessThan(numOf(0.0))) return trend1.multipliedBy(numOf(-1.0)); else return NaN.NaN;
+                if (trend1.isLessThan(numOf(0.0))) return trend1.multipliedBy(numOf(-1.0)); else return numOf(0.0);
             }
         }
 

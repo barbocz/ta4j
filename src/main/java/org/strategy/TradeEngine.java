@@ -349,9 +349,10 @@ public class TradeEngine {
     }
 
     public void closeOrder(Order order) throws Exception {
-        if (!order.forcedClose) exitStrategy.onExitEvent(order);        // defaultból az order.closedAmount -  order.openAmount-ra lesz itt állítva, a metódusban lehetséges a részleges zárás specifikálása
-        else order.closedAmount = order.openedAmount;
-
+        order.closedAmount = order.openedAmount;
+//        if (!order.forcedClose) exitStrategy.onExitEvent(order);        // defaultból az order.closedAmount -  order.openAmount-ra lesz itt állítva, a metódusban lehetséges a részleges zárás specifikálása
+//        else order.closedAmount = order.openedAmount;
+        exitStrategy.onExitEvent(order);
 
         if (order.closedAmount > 0.0) {
             try {
@@ -496,6 +497,10 @@ public class TradeEngine {
         if (logLevel.ordinal() > LogLevel.BASIC.ordinal()) logStrategy.getMT4data(logStrategy.id);
 
         logStrategy.getProfitByMonth(logStrategy.id);
+
+//        for (int i = 0; i < series.getEndIndex(); i++) {
+//            System.out.println(series.getBar(i).getEndTime()+" - "+series.getBar(i).getOrderType());
+//        }
 
 
     }

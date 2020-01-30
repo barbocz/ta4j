@@ -70,6 +70,7 @@ public class Order implements Serializable {
             public boolean isBuy() {
                 return true;
             }
+
         },
         SELL {
             @Override
@@ -81,6 +82,8 @@ public class Order implements Serializable {
             public boolean isBuy() {
                 return false;
             }
+
+
         };
 
         /**
@@ -88,6 +91,7 @@ public class Order implements Serializable {
          */
         public abstract OrderType complementType();
         public abstract boolean isBuy();
+
     }
 
 

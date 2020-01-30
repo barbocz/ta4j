@@ -47,7 +47,7 @@ public class BollingerBandsLowerIndicator extends CachedIndicator<Num> {
      *      Typically a StandardDeviationIndicator is used.
      */
     public BollingerBandsLowerIndicator(BollingerBandsMiddleIndicator bbm, Indicator<Num> indicator) {
-        this(bbm, indicator, bbm.getTimeSeries().numOf(2));
+        this(bbm, indicator, 2.0);
     }
 
     /**
@@ -57,11 +57,11 @@ public class BollingerBandsLowerIndicator extends CachedIndicator<Num> {
      *      Typically a StandardDeviationIndicator is used.
      * @param k the scaling factor to multiply the deviation by.  Typically 2.
      */
-    public BollingerBandsLowerIndicator(BollingerBandsMiddleIndicator bbm, Indicator<Num> indicator, Num k) {
+    public BollingerBandsLowerIndicator(BollingerBandsMiddleIndicator bbm, Indicator<Num> indicator, double k) {
         super(indicator);
         this.bbm = bbm;
         this.indicator = indicator;
-        this.k = k;
+        this.k = numOf(k);
     }
 
     @Override

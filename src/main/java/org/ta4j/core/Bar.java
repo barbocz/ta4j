@@ -33,6 +33,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.function.Function;
+import org.strategy.Order;
 
 /**
  * End bar of a time timeFrame.
@@ -117,6 +118,9 @@ public interface Bar extends Serializable {
     default String getSimpleDateName() {
         return getEndTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
+
+    default Order.Type getOrderType() {return Order.Type.HOLD;}
+    default void setOrderType(Order.Type orderType){};
 
     /**
      * @return true if this is a bearish bar, false otherwise
