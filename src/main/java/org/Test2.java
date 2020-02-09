@@ -18,26 +18,44 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 public class Test2 {
 
 
     public static void main(String[] args) throws Exception {
-        String metaTradeTimeZone="CET";
-        try (InputStream input = new FileInputStream("config.properties")) {
-            Properties prop = new Properties();
-            prop.load(input);
-            metaTradeTimeZone=prop.getProperty("mt4.timeZone");
-            input.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+
+        Set<Integer> murrayPeriods =  new HashSet<>(Arrays.asList(64,128,256,512));
+        HashMap<Integer, MurrayCalculated> hashMap=new HashMap<>();
+
+
+        for (Integer mp: murrayPeriods){
+            MurrayCalculated murrayCalculated=new MurrayCalculated();
+            murrayCalculated.height=mp;
+            hashMap.put(mp,murrayCalculated);
         }
 
-        DateTimeFormatter zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.of(metaTradeTimeZone));
+        for (MurrayCalculated murrayCalculated: hashMap.values()){
+            if (murrayCalculated.height==128.0) murrayCalculated.isSatisfied=true;
+        }
 
-        System.out.println(ZonedDateTime.parse("2020.01.17 13:08", zdtFormatter).toInstant());
+        for (MurrayCalculated murrayCalculated: hashMap.values()){
+            System.out.println(murrayCalculated.height+" , "+murrayCalculated.isSatisfied);
+        }
+
+//        String metaTradeTimeZone="CET";
+//        try (InputStream input = new FileInputStream("config.properties")) {
+//            Properties prop = new Properties();
+//            prop.load(input);
+//            metaTradeTimeZone=prop.getProperty("mt4.timeZone");
+//            input.close();
+//        } catch (IOException ex) {
+//            ex.printStackTrace();
+//        }
+//
+//        DateTimeFormatter zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.of(metaTradeTimeZone));
+//
+//        System.out.println(ZonedDateTime.parse("2020.01.17 13:08", zdtFormatter).toInstant());
 
 
 //        ZonedDateTime currentTime = ZonedDateTime.parse("2020.01.16 17:38", zdtFormatter);
@@ -105,4 +123,10 @@ public class Test2 {
     }
 
 
+
+
+}
+class MurrayCalculated{
+    double level2,level10,level6,height;
+    boolean isSatisfied=false;
 }

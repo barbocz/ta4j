@@ -4,43 +4,57 @@ import org.strategy.Order;
 import org.strategy.Strategy;
 import org.strategy.TradeEngine;
 import org.ta4j.core.indicators.ATRIndicator;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
+import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
+import org.ta4j.core.num.Num;
 
 
-public class MurrayBasedExit extends Strategy {
+public class MurrayLevelChangedExit extends Strategy {
 
     ATRIndicator atrIndicator;
-    MurrayMathIndicator murrayMathIndicators[] = new MurrayMathIndicator[13];
+    MurrayMathFixedIndicator murrayMathIndicators[] = new MurrayMathFixedIndicator[13];
 
-
-    public MurrayBasedExit() {
-
-
-        // log:
-//        rulesForLog.add(ruleForSell);
-//        rulesForLog.add(ruleForBuy);
-//        indicatorsForLog.add(closePriceD);
-//        indicatorsForLog.add(kcU);
-
-//        indicatorsForLog.add(chaikinIndicator);
-//        setLogOn();
-
-    }
 
     public void init() {
 
 
         for (int i = 0; i < 13; i++) {
-            murrayMathIndicators[i] = new MurrayMathIndicator(tradeEngine.series, 128, i);
+            murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i);
         }
 
-        atrIndicator = new ATRIndicator(tradeEngine.series, 16);
 
     }
 
 
     public void onTradeEvent(Order order) {
+        Num entryLevel = tradeEngine.series.numOf(order.parameters.get("entry"));
+        double takeProfit = 0.0, stopLoss = 0.0;
+        for (int i = 0; i < 13; i++) {
+            if (murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).isGreaterThan(entryLevel)) {
+                if (order.type == Order.Type.BUY) takeProfit = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
+                else stopLoss = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
+                break;
+            }
+        }
+        for (int i = 12; i >=0; i--) {
+            if (murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).isLessThan(entryLevel)) {
+                if (order.type == Order.Type.BUY) stopLoss = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
+                else takeProfit = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
+                break;
+            }
+        }
+        double height=murrayMathIndicators[1].getValue(tradeEngine.currentBarIndex).doubleValue() - murrayMathIndicators[0].getValue(tradeEngine.currentBarIndex).doubleValue();
+        if (stopLoss == 0.0) {
+            if (order.type == Order.Type.BUY) stopLoss=entryLevel.doubleValue()-height;
+            else stopLoss=entryLevel.doubleValue()+height;
+        }
+        if (takeProfit == 0.0) {
+            if (order.type == Order.Type.BUY) stopLoss=entryLevel.doubleValue()+height;
+            else stopLoss=entryLevel.doubleValue()-height;
+        }
+
+        tradeEngine.setExitPrice(order, takeProfit, TradeEngine.ExitMode.TAKEPROFIT, true);
+        tradeEngine.setExitPrice(order, stopLoss, TradeEngine.ExitMode.STOPLOSS, true);
+    }
 //        double murrayLevelMultiplier = 1.0, atrMultiplier = 0.0, riskReward=1.0;
 //
 //        int lowerIndex=-1, upperIndex=-1;
@@ -97,7 +111,6 @@ public class MurrayBasedExit extends Strategy {
 
 
 
-    }
 
 //    public void onExitEvent(Order order){
 //        order.closedAmount=order.amount;
@@ -143,10 +156,9 @@ public class MurrayBasedExit extends Strategy {
 //                        tradeEngine.setExitPrice(order, parabolicSarIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
 //                    }
 
-                    int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 4)
-                        tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
-
+//                int openIndex = tradeEngine.series.getIndex(order.openTime);
+//                if (tradeEngine.series.getCurrentIndex() - openIndex > 4)
+//                    tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
 
 
 //                if (order.type == Order.Type.BUY) {

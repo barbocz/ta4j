@@ -560,7 +560,7 @@ public class LogStrategy {
             logStrategyResult();
             logFileForBars = new BufferedWriter(new FileWriter(logFileNameForBars, true));
         }
-        if (tradeEngine.timeFrame==timeFrame) logFileForBars.write(tradeEngine.series.toString(tradeEngine.series.getCurrentBar()) + "|" + decimalFormatWith2Dec.format(tradeEngine.balance) + "|" + decimalFormatWith2Dec.format(tradeEngine.equity) + "\r\n");
+        if (tradeEngine.timeFrame==timeFrame) logFileForBars.write(tradeEngine.series.toString(tradeEngine.series.getCurrentBar()) + "|" + decimalFormatWith2Dec.format(tradeEngine.balance) + "|" + decimalFormatWith2Dec.format(tradeEngine.equity) + "|" +tradeEngine.series.getIndex(tradeEngine.series.getCurrentBar().getEndTime())+"\r\n");
 
         if (online && tradeEngine.timeFrame==timeFrame) logFileForBars.close();
 

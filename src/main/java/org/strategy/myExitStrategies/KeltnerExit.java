@@ -27,10 +27,10 @@ public class KeltnerExit extends Strategy {
         keltnerChannelMiddleIndicator = new KeltnerChannelMiddleIndicator(tradeEngine.series, 34);
         keltnerChannelUpperIndicator = new KeltnerChannelUpperIndicator(keltnerChannelMiddleIndicator, 3.4, 34);
         keltnerChannelLowerIndicator = new KeltnerChannelLowerIndicator(keltnerChannelMiddleIndicator, 3.4, 34);
+        atrIndicator = new ATRIndicator(tradeEngine.series, 34);
 
         HighPriceIndicator highPriceIndicator = new HighPriceIndicator(tradeEngine.series);
         highestValueIndicator = new HighestValueIndicator(highPriceIndicator, 8);
-        atrIndicator = new ATRIndicator(tradeEngine.series, 34);
 
         LowPriceIndicator lowPriceIndicator = new LowPriceIndicator(tradeEngine.series);
         lowestValueIndicator = new LowestValueIndicator(lowPriceIndicator, 8);

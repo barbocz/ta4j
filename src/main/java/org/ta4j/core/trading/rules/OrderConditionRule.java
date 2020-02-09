@@ -42,7 +42,8 @@ public class OrderConditionRule extends AbstractRule {
     public enum AllowedOrderType {
         ONLY_BUY,
         ONLY_SELL,
-        BOTH
+        BOTH,
+        NONE
     }
 
     /**
@@ -75,7 +76,7 @@ public class OrderConditionRule extends AbstractRule {
     public boolean isSatisfied(ZonedDateTime time) {
 //        final boolean satisfied = !getCore().hasOpenOrders();
 //        getCore().debugRule(index,this,satisfied);
-
+        if (openedOrderType==AllowedOrderType.NONE && tradeEngine.openedOrders.size()>0) return false; // egyszerre csak egy order
 //        if (tradeEngine.openedOrders.size() == 0) return false;
         if (openedOrderType != AllowedOrderType.BOTH) {
             for (Order order : tradeEngine.openedOrders) {

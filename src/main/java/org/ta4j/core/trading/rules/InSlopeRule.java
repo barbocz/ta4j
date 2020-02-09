@@ -137,4 +137,12 @@ public class InSlopeRule extends AbstractRule {
         if (satisfied)  tradeEngine.logStrategy.logRule(this,time,index,satisfied);
         return satisfied;
     }
+
+    @Override
+    public String getParameters() {
+        String info=getClass().getSimpleName();
+        if (!minSlope.isNaN()) info+=" ("+ref.getClass().getSimpleName()+" M"+ref.getTimeSeries().getPeriod()+" MinSlope: "+minSlope+")";
+        if (!maxSlope.isNaN()) info+=" ("+ref.getClass().getSimpleName()+" M"+ref.getTimeSeries().getPeriod()+" MaxSlope: "+maxSlope+")";
+        return info;
+    }
 }

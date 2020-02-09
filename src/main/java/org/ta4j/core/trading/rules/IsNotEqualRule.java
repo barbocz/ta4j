@@ -25,7 +25,6 @@ package org.ta4j.core.trading.rules;
 
 import org.strategy.TimeSeriesRepo;
 import org.ta4j.core.Indicator;
-import org.ta4j.core.TradingRecord;
 import org.ta4j.core.indicators.helpers.ConstantIndicator;
 import org.ta4j.core.num.Num;
 
@@ -36,7 +35,7 @@ import java.time.ZonedDateTime;
  * </p>
  * Satisfied when the value of the first {@link Indicator indicator} is equal to the value of the second one.
  */
-public class IsEqualRule extends AbstractRule {
+public class IsNotEqualRule extends AbstractRule {
 
     /**
      * The first indicator
@@ -58,7 +57,7 @@ public class IsEqualRule extends AbstractRule {
      * @param indicator the indicator
      * @param value     the value to check
      */
-    public IsEqualRule(Indicator<Num> indicator, Number value,int shift) {
+    public IsNotEqualRule(Indicator<Num> indicator, Number value, int shift) {
         this(indicator, indicator.numOf(value),shift);
 
     }
@@ -69,14 +68,14 @@ public class IsEqualRule extends AbstractRule {
      * @param indicator the indicator
      * @param value     the value to check
      */
-    public IsEqualRule(Indicator<Num> indicator, Num value,int shift) {
+    public IsNotEqualRule(Indicator<Num> indicator, Num value, int shift) {
         this(indicator, new ConstantIndicator<>(indicator.getTimeSeries(), value));
         this.shift=shift;
         periodForFirst=indicator.getTimeSeries().getPeriod();
         timeSeriesRepo=indicator.getTimeSeries().getTimeSeriesRepo();
     }
 
-    public IsEqualRule(Indicator<Num> indicator, Num value,int shift,double satisfactionRatio) {
+    public IsNotEqualRule(Indicator<Num> indicator, Num value, int shift, double satisfactionRatio) {
         this(indicator, new ConstantIndicator<>(indicator.getTimeSeries(), value));
         this.shift=shift;
         this.satisfactionRatio=satisfactionRatio;
@@ -91,7 +90,7 @@ public class IsEqualRule extends AbstractRule {
      * @param first  the first indicator
      * @param second the second indicator
      */
-    public IsEqualRule(Indicator<Num> first, Indicator<Num> second) {
+    public IsNotEqualRule(Indicator<Num> first, Indicator<Num> second) {
         this.first = first;
         this.second = second;
         periodForFirst=first.getTimeSeries().getPeriod();
@@ -99,7 +98,7 @@ public class IsEqualRule extends AbstractRule {
         timeSeriesRepo=first.getTimeSeries().getTimeSeriesRepo();
     }
 
-    public IsEqualRule(Indicator<Num> first, Indicator<Num> second,int shift) {
+    public IsNotEqualRule(Indicator<Num> first, Indicator<Num> second, int shift) {
         this.first = first;
         this.second = second;
         this.shift=shift;
@@ -116,12 +115,12 @@ public class IsEqualRule extends AbstractRule {
         int indexForPeriod=getCore().getIndex(index,periodForFirst);
         boolean satisfied=false;
         if (shift==0 || indexForPeriod-shift<0) {
-            satisfied= first.getValue(indexForPeriod).isEqual(second.getValue(indexForPeriod));
+            satisfied= !first.getValue(indexForPeriod).isEqual(second.getValue(indexForPeriod));
             //traceIsSatisfied(index, satisfied);
         } else {
             int count = 0;
             for (int i = 0; i < shift ; i++) {
-                if (first.getValue(indexForPeriod-i).isEqual(second.getValue(indexForPeriod-i))) {
+                if (!first.getValue(indexForPeriod-i).isEqual(second.getValue(indexForPeriod-i))) {
                     if (satisfactionRatio==0.0) {
                         satisfied = true;
                         break;
@@ -156,14 +155,14 @@ public class IsEqualRule extends AbstractRule {
         if (indexForFirst==indexForSecond) sameTimeFrame=true;
 
         if (shift==0) {
-            satisfied= first.getValue(indexForFirst).isEqual(valueForSecond);
+            satisfied= !first.getValue(indexForFirst).isEqual(valueForSecond);
             //traceIsSatisfied(index, satisfied);
         } else {
             int count = 0;
             for (int i = 0; i < shift ; i++) {
                 if (indexForFirst-i>-1) {
                     if (sameTimeFrame) valueForSecond=second.getValue(indexForSecond - i);
-                    if (first.getValue(indexForFirst - i).isEqual(valueForSecond)) {
+                    if (!first.getValue(indexForFirst - i).isEqual(valueForSecond)) {
                         if (satisfactionRatio == 0.0) {
                             satisfied = true;
                             break;

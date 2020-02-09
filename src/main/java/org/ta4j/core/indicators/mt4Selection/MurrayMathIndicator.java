@@ -111,6 +111,7 @@ public class MurrayMathIndicator extends CachedIndicator<Num> implements Buffere
         double mml[]=new double[13];
 
 
+
          v1 = lowestValueIndicator.getValue(index).doubleValue();;
          v2 = highestValueIndicator.getValue(index).doubleValue();
 
@@ -186,6 +187,10 @@ public class MurrayMathIndicator extends CachedIndicator<Num> implements Buffere
 
         dmml=(finalH-finalL)/8;
         buffer[0]=numOf(finalL-dmml*2); //-2/8
+
+//        if (index==8990) {
+//            System.out.println("break");
+//        }
 
         for (int i = 1; i < 13; i++) buffer[i]=buffer[i-1].plus(numOf(dmml));
 

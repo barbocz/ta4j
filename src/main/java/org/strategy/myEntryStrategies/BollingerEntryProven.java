@@ -12,18 +12,17 @@ import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.helpers.PreviousValueIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
 import org.ta4j.core.indicators.mt4Selection.AntiAlligatorIndicator;
+import org.ta4j.core.indicators.mt4Selection.LaguerreIndicator;
 import org.ta4j.core.indicators.mt4Selection.WaddahIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.num.Num;
-import org.ta4j.core.trading.rules.CrossedDownIndicatorRule;
-import org.ta4j.core.trading.rules.OrderConditionRule;
-import org.ta4j.core.trading.rules.OverIndicatorRule;
-import org.ta4j.core.trading.rules.UnderIndicatorRule;
+import org.ta4j.core.trading.rules.*;
 
 import java.awt.*;
 import java.time.ZonedDateTime;
@@ -48,8 +47,8 @@ public class BollingerEntryProven extends Strategy {
 
 
         KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 54);
-        kcU = new KeltnerChannelUpperIndicator(kcM, 2.0, 54);
-        kcL = new KeltnerChannelLowerIndicator(kcM, 2.0, 54);
+        kcU = new KeltnerChannelUpperIndicator(kcM, 2.6, 54);
+        kcL = new KeltnerChannelLowerIndicator(kcM, 2.6, 54);
 
 
         SMAIndicator smaIndicator=new SMAIndicator(closePrice,20);
@@ -67,7 +66,7 @@ public class BollingerEntryProven extends Strategy {
 //        KeltnerChannelUpperIndicator kcU60 = new KeltnerChannelUpperIndicator(kcM60, 1.3, 8);
 //        KeltnerChannelLowerIndicator kcL60 = new KeltnerChannelLowerIndicator(kcM60, 1.3, 8);
 
-        ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 5);
+        ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 6);
 //        ADXIndicator adxIndicator = new ADXIndicator(tradeEngine.series, 3);
 //        AvgIndicator avgAdxIndicator=new AvgIndicator(adxIndicator,8);
 
@@ -98,13 +97,24 @@ public class BollingerEntryProven extends Strategy {
 //
 //        ruleForSell=closePriceOverKeltnerUpperIn8.and(closePriceOverKeltnerMiddle).and(chaikinOver0_4in8).and(noTradeOpen);
 
-        ruleForSell = new OverIndicatorRule(closePrice, bollingerBandsUpperIndicator, 8);
-        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice,kcU,8 ));
+        LaguerreIndicator laguerreIndicator=new LaguerreIndicator(tradeEngine.series,0.6);
+        PreviousValueIndicator previousValueIndicator=new PreviousValueIndicator(laguerreIndicator);
+
+
+        ruleForSell = new OverIndicatorRule(closePrice, bollingerBandsUpperIndicator, 5);
+        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice,kcU,5 ));
+        ruleForSell = ruleForSell.and(new IsEqualRule(previousValueIndicator,tradeEngine.series.numOf(1.0),3));
+        ruleForSell = ruleForSell.and(new UnderIndicatorRule(laguerreIndicator,0.95));
 
 //        ruleForSell = ruleForSell.and(new IsFallingRule(kamaIndicator,true));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(minusDIIndicator,plusDIIndicator));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU));
         ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.42, 6));
+
+
+//        ruleForSell =  ruleForSell.and(new IsEqualRule(previousValueIndicator,tradeEngine.series.numOf(1.0),4));
+
+
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 98, 8));
 //        ruleForSell = ruleForSell.and(new IsFallingRule(avgAdxIndicator, true));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(avgAdxIndicator,75.0));
@@ -118,6 +128,13 @@ public class BollingerEntryProven extends Strategy {
 //        ruleForBuy = new IsRisingRule(avgIndicator, true);
         ruleForBuy = new UnderIndicatorRule(closePrice, bollingerBandsLowerIndicator, 8);
         ruleForBuy = ruleForBuy.and(new OverIndicatorRule(closePrice, kcL,8));
+
+        ruleForBuy =  ruleForBuy.and(new IsEqualRule(previousValueIndicator,tradeEngine.series.numOf(0.0),3));
+        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(laguerreIndicator,0.05));
+//        ruleForBuy = ruleForBuy.and(new IsEqualRule(previousValueIndicator,tradeEngine.series.numOf(0.0),4));
+
+//        ruleForBuy = ruleForBuy.and(new IsEqualRule(laguerreIndicatorSlow,tradeEngine.series.numOf(0.0),0));
+
 //        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(plusDIIndicator, minusDIIndicator));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(longCci, cciLowerLimit));
 
@@ -172,9 +189,9 @@ public class BollingerEntryProven extends Strategy {
 //        kcU8.indicatorColor=Color.GRAY;
 //        tradeEngine.log(kcL8);
 
-
-//        longCci.subWindowIndex=4;
-//        tradeEngine.log(longCci);
+        LaguerreIndicator laguerreIndicatorSlow=new LaguerreIndicator(tradeEngine.series,0.6);
+        chaikinIndicator.subWindowIndex=4;
+        tradeEngine.log(chaikinIndicator);
 
 //        plusDIIndicator.subWindowIndex=5;
 //        plusDIIndicator.indicatorColor=Color.GREEN;

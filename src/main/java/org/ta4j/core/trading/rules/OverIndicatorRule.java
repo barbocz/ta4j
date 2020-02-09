@@ -162,7 +162,7 @@ public class OverIndicatorRule extends AbstractRule {
                     if (indexForFirst - i > -1) {
 
                         if (sameTimeFrame) valueForSecond=second.getValue(indexForSecond - i);
-
+                        Num vff=first.getValue(indexForFirst - i);
                         if (first.getValue(indexForFirst - i).isGreaterThan(valueForSecond)) {
                             if (satisfactionRatio == 0.0) {
                                 satisfied = true;

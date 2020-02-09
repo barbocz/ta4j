@@ -59,7 +59,7 @@ public class LowestValueIndicator extends CachedIndicator<Num> {
         }
         int end = Math.max(0, index - barCount + 1);
         Num lowest = indicator.getValue(index-barShift);
-        for (int i = index - 1-barShift; i >= end; i--) {
+        for (int i = index -barShift; i >= end; i--) {
             if (lowest.isGreaterThan(indicator.getValue(i))) {
                 lowest = indicator.getValue(i);
             }

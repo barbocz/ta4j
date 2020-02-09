@@ -848,7 +848,7 @@ public class MT4TimeSeries implements TimeSeries {
 
         int index = timeTreeMap.get(key);
         if (index > 0) return index - 1;
-        else return 0;  // aktuálisat nem adhatjuk vissza mert az még nem lehet up-to-date
+        else return -1;  // aktuálisat nem adhatjuk vissza mert az még nem lehet up-to-date
 
     }
 

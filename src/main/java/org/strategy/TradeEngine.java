@@ -59,7 +59,7 @@ public class TradeEngine {
     StringBuffer balanceEquityLogContent = new StringBuffer("");
     List<StringBuffer> loggedExitPrices = new ArrayList<>();
 
-    double initialBalance = 10000.0, initialAmount = 100000.0;
+    public double initialBalance = 10000.0, initialAmount = 100000.0;
     double balance, equity, lastBalanceMaximum, lastBalanceMinimum, balanceDrawDown = 0.0, equityMinimum, openMinimum = Double.MAX_VALUE, openMaximum = 0.0;
     int profitableTrade = 0, losingTrade = 0;
 
@@ -206,7 +206,7 @@ public class TradeEngine {
     public void onBarChangeEvent(int timeFrame) throws Exception {
 //        System.out.println("te onBarChangeEvent");
         currentBarIndex = series.getCurrentIndex();
-        if (backtestMode) currentBarIndex = currentBarIndex - 1;
+//        if (backtestMode) currentBarIndex = currentBarIndex - 1;
 
         if (!openOrdersWereClosedBeforeMt4Trading && mt4TradeIsAllowed()) {                              // mielőtt megkezdenő az MT4 kereskedést bezárjuk a nyitott order-eket
                 openOrdersWereClosedBeforeMt4Trading=true;
@@ -349,7 +349,7 @@ public class TradeEngine {
     }
 
     public void closeOrder(Order order) throws Exception {
-        order.closedAmount = order.openedAmount;
+        if (order.closedAmount==0.0) order.closedAmount=order.openedAmount;
 //        if (!order.forcedClose) exitStrategy.onExitEvent(order);        // defaultból az order.closedAmount -  order.openAmount-ra lesz itt állítva, a metódusban lehetséges a részleges zárás specifikálása
 //        else order.closedAmount = order.openedAmount;
         exitStrategy.onExitEvent(order);
@@ -439,9 +439,10 @@ public class TradeEngine {
 
         entryStrategy.orderAmount = initialAmount;
 //        timeSeriesRepo.coreSeries.getEndIndex()-50
-        for (int i = 1; i < timeSeriesRepo.coreSeries.getEndIndex() + 1; i++) {
+        for (int i = 0; i < timeSeriesRepo.coreSeries.getEndIndex() + 1; i++) {
             minuteBar = timeSeriesRepo.coreSeries.getBar(i);
             ZonedDateTime time = minuteBar.getBeginTime();
+            if (series.getIndex(time)<0) continue;
             series.setCurrentTime(time);
             // tick
             openPrice = minuteBar.getOpenPrice().doubleValue();

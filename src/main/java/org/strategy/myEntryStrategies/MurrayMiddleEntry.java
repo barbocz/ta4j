@@ -4,11 +4,12 @@ import org.strategy.Order;
 import org.strategy.Strategy;
 import org.ta4j.core.indicators.KAMAIndicator;
 import org.ta4j.core.indicators.adx.ADXIndicator;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.helpers.*;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
+import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.trading.rules.InSlopeRule;
 import org.ta4j.core.trading.rules.OverIndicatorRule;
@@ -20,6 +21,8 @@ import java.time.ZonedDateTime;
 public class MurrayMiddleEntry extends Strategy {
 
     MurrayMathIndicator murrayMathIndicators[] = new MurrayMathIndicator[13];
+    HighestValueIndicator highestValueIndicator;
+    LowestValueIndicator lowestValueIndicator;
     boolean buyOk = false, sellOk = false;
 
 
@@ -28,6 +31,11 @@ public class MurrayMiddleEntry extends Strategy {
         for (int i = 0; i < 13; i++) {
             murrayMathIndicators[i] = new MurrayMathIndicator(tradeEngine.series, 256, i);
         }
+        HighPriceIndicator highPriceIndicator = new HighPriceIndicator(tradeEngine.series);
+        highestValueIndicator = new HighestValueIndicator(highPriceIndicator, 8);
+
+        LowPriceIndicator lowPriceIndicator = new LowPriceIndicator(tradeEngine.series);
+        lowestValueIndicator = new LowestValueIndicator(lowPriceIndicator, 8);
 
         ClosePriceIndicator closePrice = new ClosePriceIndicator(tradeEngine.series);
         ADXIndicator adxIndicator = new ADXIndicator(tradeEngine.series, 5);
@@ -68,11 +76,21 @@ public class MurrayMiddleEntry extends Strategy {
         adxIndicator.subWindowIndex = 4;
         tradeEngine.log(adxIndicator);
 
+        ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 5);
+        chaikinIndicator.subWindowIndex = 5;
+        tradeEngine.log(chaikinIndicator);
+
+//        for (int i = 417; i < 420; i++) {
+//            System.out.println(tradeEngine.series.getBar(i).getBeginTime()+" close: "+highestValueIndicator.getValue(i));
+//        }
+
 
     }
 
 
     public void onTradeEvent(Order order) {
+
+
 
 
     }
@@ -91,15 +109,18 @@ public class MurrayMiddleEntry extends Strategy {
                     upperMurray = murrayMathIndicators[i + 1].getValue(tradeEngine.currentBarIndex).doubleValue();
                     murrayHeight = upperMurray - lowerMurray;
 
-                    if (buyOk && currentPrice >= lowerMurray + (murrayHeight * 0.5) && currentPrice <= lowerMurray + (murrayHeight * 0.65)) {
+                    if (buyOk && currentPrice >= lowerMurray + (murrayHeight * 0.4) && currentPrice <= lowerMurray + (murrayHeight * 0.6)) {
+                        double hv=highestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
+                        if (highestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()>upperMurray) return;
                         Order order = Order.buy(orderAmount, tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime());
-                        order.takeProfit = upperMurray;
+                        order.takeProfit = upperMurray - murrayHeight * 0.1;
                         order.stopLoss = lowerMurray - murrayHeight * 0.25;
                         buyOk = false;
                         tradeEngine.onTradeEvent(order);
-                    } else if (sellOk && currentPrice <= lowerMurray + (murrayHeight * 0.5) && currentPrice >= lowerMurray + (murrayHeight * 0.35)) {
+                    } else if (sellOk && currentPrice <= lowerMurray + (murrayHeight * 0.6) && currentPrice >= lowerMurray + (murrayHeight * 0.4)) {
+                        if (lowestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()<lowerMurray) return;
                         Order order = Order.sell(orderAmount, tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime());
-                        order.takeProfit = lowerMurray;
+                        order.takeProfit = lowerMurray + murrayHeight * 0.1;;
                         order.stopLoss = upperMurray + murrayHeight * 0.25;
                         sellOk = false;
                         tradeEngine.onTradeEvent(order);
@@ -109,9 +130,10 @@ public class MurrayMiddleEntry extends Strategy {
             }
 
         }
-
-
     }
+
+
+
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 //        System.out.println("onBarChangeEvent------------- "+timeFrame);

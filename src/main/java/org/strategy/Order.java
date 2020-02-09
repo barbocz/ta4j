@@ -1,6 +1,7 @@
 package org.strategy;
 
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 
 public class Order implements Cloneable {
 
@@ -119,6 +120,8 @@ public class Order implements Cloneable {
     public String mt4Comment="";
 
     public boolean forcedClose=false;   // ha true akkor nem hívódik meg az Exit stratégia onExitEvent-je, hanem simán bezárásra kerül
+
+    public HashMap<String,Double> parameters=new HashMap<>();
 
     public Object clone()throws CloneNotSupportedException{
         return (Order)super.clone();

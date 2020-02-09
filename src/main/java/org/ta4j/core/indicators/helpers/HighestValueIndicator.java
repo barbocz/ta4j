@@ -59,7 +59,7 @@ public class HighestValueIndicator extends CachedIndicator<Num> {
         }
         int end = Math.max(0, index - barCount + 1);
         Num highest = indicator.getValue(index-barShift);
-        for (int i = index - 1-barShift; i >= end; i--) {
+        for (int i = index - barShift; i >= end; i--) {
             if (highest.isLessThan(indicator.getValue(i))) {
                 highest = indicator.getValue(i);
             }
