@@ -120,9 +120,9 @@ public class MurrayRefinedExit extends Strategy {
 
     @Override
     public void onExitEvent(Order order) {
-        if (order.closePhase == 0 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0) {
+        if (order.phase == 0 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0) {
             order.closedAmount = order.openedAmount / 2.0;
-            order.closePhase = 1;
+            order.phase = 1;
             if (order.type == Order.Type.BUY) {
                 tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, false);
             } else {
@@ -132,9 +132,9 @@ public class MurrayRefinedExit extends Strategy {
         }
 
 //        order.closedAmount = order.openedAmount;
-        else if (order.closePhase == 1 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0) {
+        else if (order.phase == 1 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0) {
             order.closedAmount = order.openedAmount / 2.0;
-            order.closePhase = 2;
+            order.phase = 2;
 
             if (order.type == Order.Type.BUY) {
                 tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
@@ -151,9 +151,9 @@ public class MurrayRefinedExit extends Strategy {
         if (tradeEngine.timeFrame == timeFrame) {
             double height = murrayMathIndicators[1].getValue(tradeEngine.currentBarIndex).doubleValue() - murrayMathIndicators[0].getValue(tradeEngine.currentBarIndex).doubleValue();
             for (Order order : tradeEngine.openedOrders) {
-                if (order.closePhase == 0)
+                if (order.phase == 0)
                     tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-                if (order.closePhase == 2) {
+                if (order.phase == 2) {
                     tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
 //                    if (order.type == Order.Type.BUY)  tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
 //                    else tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);

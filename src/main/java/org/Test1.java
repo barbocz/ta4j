@@ -40,7 +40,7 @@ public class Test1 {
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("GBPUSD","backTestGBP.csv","yyyy.MM.dd HH:mm");
 
         long startTime = System.currentTimeMillis();
-            TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new MurrayLevelChange(),new MurrayLevelChangedExit(),null, TradeEngine.LogLevel.BASIC);
+            TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new MurrayLevelChange_v2(),new MurrayLevelChangedExit_v2(),null, TradeEngine.LogLevel.BASIC);
 //        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new KeltnerEntry(),new KeltnerExit(),null, TradeEngine.LogLevel.BASIC);
         System.out.println(tradeEngine.series.getSymbol());
 //

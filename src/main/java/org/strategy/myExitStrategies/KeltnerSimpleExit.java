@@ -42,9 +42,9 @@ public class KeltnerSimpleExit extends Strategy {
 
     @Override
     public void onExitEvent(Order order) {
-        if (order.closePhase == 0 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0) {
+        if (order.phase == 0 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0) {
             order.closedAmount = order.openedAmount / 2.0;
-            order.closePhase = 1;
+            order.phase = 1;
             order.takeProfit=0.0;
             tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, false);
         } else order.closedAmount = order.openedAmount;
@@ -72,7 +72,7 @@ public class KeltnerSimpleExit extends Strategy {
 
                 for (Order order : tradeEngine.openedOrders) {
                     int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (order.closePhase==0) {
+                    if (order.phase ==0) {
                         if (order.type == Order.Type.BUY) {
                             if (strongBuy < -1 && tradeEngine.series.getCurrentIndex() - openIndex > 4)
                                 ordersToClose.add(order);
@@ -99,7 +99,7 @@ public class KeltnerSimpleExit extends Strategy {
 
                         }
                     }
-                    if (order.closePhase==1) {
+                    if (order.phase ==1) {
                         tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
                     }
                     if (tradeEngine.series.getCurrentIndex() - openIndex > 24)

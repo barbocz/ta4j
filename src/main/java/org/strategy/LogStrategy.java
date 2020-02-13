@@ -203,7 +203,7 @@ public class LogStrategy {
                 pstmt.setLong(1, id);
                 pstmt.setString(2, "INDICATOR");
                 pstmt.setString(3, "INDICATOR");
-                pstmt.setString(4, indicator.getClass().getSimpleName());
+                pstmt.setString(4, indicator.toString());
                 pstmt.setInt(5, indicator.hashCode());
                 pstmt.setInt(6, indicator.getSubWindowIndex());
                 pstmt.setString(7, (indicator.getIndicatorColor().getRed() + "|" + indicator.getIndicatorColor().getGreen() + "|" + indicator.getIndicatorColor().getBlue()));

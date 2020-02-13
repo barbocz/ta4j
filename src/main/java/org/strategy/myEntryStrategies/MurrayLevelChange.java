@@ -4,10 +4,7 @@ import org.strategy.Order;
 import org.strategy.Strategy;
 import org.ta4j.core.Rule;
 
-import org.ta4j.core.indicators.EMAIndicator;
-import org.ta4j.core.indicators.ParabolicSarIndicator;
-import org.ta4j.core.indicators.RSIIndicator;
-import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.*;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
 import org.ta4j.core.indicators.helpers.DifferenceIndicator;
@@ -19,10 +16,7 @@ import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.indicators.volume.MoneyFlowIndicator;
 import org.ta4j.core.num.Num;
-import org.ta4j.core.trading.rules.InSlopeRule;
-import org.ta4j.core.trading.rules.OrderConditionRule;
-import org.ta4j.core.trading.rules.OverIndicatorRule;
-import org.ta4j.core.trading.rules.UnderIndicatorRule;
+import org.ta4j.core.trading.rules.*;
 import org.ta4j.core.trading.rules.helpers.MurrayHighLevelChangeRule;
 import org.ta4j.core.trading.rules.helpers.MurrayLowLevelChangeRule;
 
@@ -45,8 +39,11 @@ public class MurrayLevelChange extends Strategy {
         }
         ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 6);
         MedianPriceIndicator medianPriceIndicator=new MedianPriceIndicator(tradeEngine.series);
-        EMAIndicator emaIndicator=new EMAIndicator(medianPriceIndicator,3);
+        SMAIndicator emaIndicator=new SMAIndicator(medianPriceIndicator,3);
         RSIIndicator rsiIndicator=new RSIIndicator(emaIndicator,8);
+
+        StochasticOscillatorKIndicator stochasticOscillatorKIndicator = new StochasticOscillatorKIndicator(tradeEngine.series, 8);
+        StochasticOscillatorDIndicator stochasticOscillatorDIndicator = new StochasticOscillatorDIndicator(stochasticOscillatorKIndicator);
 //        ruleForBuy = ruleForBuy.and(new IsFallingRule(longSma,1,1.0));
 
 //        SMAIndicator longSma = new SMAIndicator(closePrice, 5);
@@ -56,15 +53,17 @@ public class MurrayLevelChange extends Strategy {
 //
 //        ParabolicSarIndicator parabolicSarIndicator=new ParabolicSarIndicator(tradeEngine.series,tradeEngine.series.numOf(0.009),tradeEngine.series.numOf(1));
 
-        ruleForSell=new OverIndicatorRule(rsiIndicator,90.0);
+        ruleForSell=new OverIndicatorRule(rsiIndicator,80.0);
+
 //        ruleForSell = ruleForSell.and(new InSlopeRule(longSma,1,slopeLimit));
-        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,13));
+        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,1));
 
 
 //        ruleForBuy=new MurrayLowLevelChangeRule(tradeEngine.series,128,13);
 //        ruleForBuy = ruleForBuy.and(new InSlopeRule(longSma,slopeLimit));
-        ruleForBuy=new UnderIndicatorRule(rsiIndicator,10.0);
-        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL,13));
+        ruleForBuy=new UnderIndicatorRule(rsiIndicator,20.0);
+
+        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL,1));
 
 
 
@@ -80,8 +79,12 @@ public class MurrayLevelChange extends Strategy {
 //        tradeEngine.log(parabolicSarIndicator);
 
 
-        chaikinIndicator.subWindowIndex=4;
-        tradeEngine.log(chaikinIndicator);
+        stochasticOscillatorKIndicator.subWindowIndex=4;
+        tradeEngine.log(stochasticOscillatorKIndicator);
+
+        stochasticOscillatorDIndicator.subWindowIndex=4;
+        stochasticOscillatorDIndicator.indicatorColor=Color.RED;
+        tradeEngine.log(stochasticOscillatorDIndicator);
 
 //        LaguerreIndicator laguerreIndicator=new LaguerreIndicator(tradeEngine.series,0.4);
         rsiIndicator.subWindowIndex=5;
@@ -97,20 +100,19 @@ public class MurrayLevelChange extends Strategy {
     public void onTickEvent() throws Exception {
 //        System.out.println("onTickEvent------------- "+tradeEngine.series.getBid());
         if (tradeEngine.timeSeriesRepo.bid>=sellEntryLevel) {
-            Order order=Order.sell(orderAmount,tradeEngine.timeSeriesRepo.ask,tradeEngine.series.getCurrentTime());
+            Order order=Order.sell(orderAmount,sellEntryLevel,tradeEngine.series.getCurrentTime());
             order.parameters.put("entry",sellEntryLevel);
             tradeEngine.onTradeEvent(order);
             sellEntryLevel=Double.MAX_VALUE;
 
         }
         else if (tradeEngine.timeSeriesRepo.bid<=buyEntryLevel) {
-            Order order=Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask,tradeEngine.series.getCurrentTime());
+            Order order=Order.buy(orderAmount,buyEntryLevel,tradeEngine.series.getCurrentTime());
             order.parameters.put("entry",buyEntryLevel);
             tradeEngine.onTradeEvent(order);
             buyEntryLevel=0.0;
 
         }
-
 
     }
 

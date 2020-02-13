@@ -107,7 +107,7 @@ public class Order implements Cloneable {
     public Status status;
     public ExitType exitType;
 
-    public int id,parentId,barIndex,closePhase=0;
+    public int id,parentId,barIndex, phase =0;
     public double openedAmount =0.0,openPrice=0.0,closePrice=0.0,cost=0.0,profit=0.0,takeProfit=0.0,stopLoss=0.0,closedAmount=0.0;
     public double maxProfit=0.0,maxLoss=0.0;
 

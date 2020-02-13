@@ -1,6 +1,8 @@
 package org.strategy;
 
 import javafx.application.Platform;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -16,18 +18,14 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 import static org.strategy.Order.ExitType.ENDSERIES;
 
@@ -177,6 +175,11 @@ public class TradeEngine {
 
     public void onTradeEvent(Order order) throws Exception {
 //        System.out.println("onTradeEvent ---------------------");
+
+//        if (currentBarIndex > 1604) {
+//            System.out.println(currentBarIndex + " - " + series.getCurrentTime());
+//        }
+
         order.id = orderIndex;
         order.barIndex = series.getCurrentIndex();
         order.openedAmount = initialAmount;
@@ -198,9 +201,10 @@ public class TradeEngine {
 
     //
     public void onTickEvent() throws Exception {
+        checkExit();
         exitStrategy.onTickEvent();
         entryStrategy.onTickEvent();
-        checkExit();
+
     }
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
@@ -311,6 +315,10 @@ public class TradeEngine {
     }
 
     public void checkExit() throws Exception {
+//
+//        if (currentBarIndex>3027) {
+//            System.out.println(currentBarIndex+" - "+series.getCurrentTime());
+//        }
 
         for (Order order : openedOrders) {
             if (order.type == Order.Type.BUY) {
@@ -344,7 +352,6 @@ public class TradeEngine {
         }
 
         openedOrders.removeIf((Order openedOrder) -> openedOrder.openedAmount == 0.0);
-
 
     }
 
@@ -394,6 +401,9 @@ public class TradeEngine {
 
             // részleges zárás miatt még maradt nyitva:
             order.openedAmount = order.openedAmount - order.closedAmount;
+            order.closedAmount=0.0;
+            order.closePrice=0.0;
+            order.closeTime=null;
             if (order.openedAmount > 0.0) {
                 order.id = orderIndex;
                 if (order.mt4TicketNumber>0) {
@@ -416,6 +426,7 @@ public class TradeEngine {
             }
 
         }
+
 
 
     }

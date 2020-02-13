@@ -85,9 +85,9 @@ public class BollingerExit extends Strategy {
 
     @Override
     public void onExitEvent(Order order) {
-        if (order.closePhase == 0 ) {
+        if (order.phase == 0 ) {
             order.closedAmount = order.openedAmount / 2.0;
-            order.closePhase = 1;
+            order.phase = 1;
             if (order.type == Order.Type.BUY) {
                 tradeEngine.setExitPrice(order, bollingerBandsUpperIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, false);
             } else {
@@ -106,7 +106,7 @@ public class BollingerExit extends Strategy {
             double atrStopLoss = 1.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
             for (Order order : tradeEngine.openedOrders) {
 
-                if (order.closePhase == 0) {
+                if (order.phase == 0) {
                     if (order.type == Order.Type.BUY) {
 
                         tradeEngine.setExitPrice(order, bollingerBandsMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);

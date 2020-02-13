@@ -38,7 +38,7 @@ public class MurrayTwoTenExit extends Strategy  {
             order.takeProfit=firstOrder.openPrice;
             order.stopLoss=firstOrder.stopLoss;
             firstOrder.takeProfit=firstOrder.openPrice;
-            order.closePhase=1;
+            order.phase =1;
         }
 
     }
@@ -52,14 +52,14 @@ public class MurrayTwoTenExit extends Strategy  {
 
     @Override
     public void onExitEvent(Order order){
-        if (tradeEngine.openedOrders.size()==1 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0 && order.closePhase==0 ) {
+        if (tradeEngine.openedOrders.size()==1 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0 && order.phase ==0 ) {
             if (order.openPrice!=order.closePrice) {
                 order.closedAmount = order.openedAmount * 0.5;
                 order.stopLoss = order.openPrice;
                 if (order.type == Order.Type.BUY) order.takeProfit = order.openPrice + murrayRange;
                 else order.takeProfit = order.openPrice - murrayRange;
 //            tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
-                order.closePhase = 1;
+                order.phase = 1;
             } else order.closedAmount = order.openedAmount;
         } else order.closedAmount = order.openedAmount;
 

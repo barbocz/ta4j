@@ -188,5 +188,11 @@ public class MurrayMathFixedIndicator extends CachedIndicator<Num> {
 
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()+"_"+level;
+    }
+
+
 
 }

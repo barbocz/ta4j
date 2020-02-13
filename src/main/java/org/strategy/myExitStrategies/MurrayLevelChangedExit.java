@@ -28,6 +28,7 @@ public class MurrayLevelChangedExit extends Strategy {
     public void onTradeEvent(Order order) {
         Num entryLevel = tradeEngine.series.numOf(order.parameters.get("entry"));
         double takeProfit = 0.0, stopLoss = 0.0;
+
         for (int i = 0; i < 13; i++) {
             if (murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).isGreaterThan(entryLevel)) {
                 if (order.type == Order.Type.BUY) takeProfit = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
@@ -48,12 +49,13 @@ public class MurrayLevelChangedExit extends Strategy {
             else stopLoss=entryLevel.doubleValue()+height;
         }
         if (takeProfit == 0.0) {
-            if (order.type == Order.Type.BUY) stopLoss=entryLevel.doubleValue()+height;
-            else stopLoss=entryLevel.doubleValue()-height;
+            if (order.type == Order.Type.BUY) takeProfit=entryLevel.doubleValue()+height;
+            else takeProfit=entryLevel.doubleValue()-height;
         }
-
-        tradeEngine.setExitPrice(order, takeProfit, TradeEngine.ExitMode.TAKEPROFIT, true);
-        tradeEngine.setExitPrice(order, stopLoss, TradeEngine.ExitMode.STOPLOSS, true);
+        order.takeProfit=takeProfit;
+        order.stopLoss=stopLoss;
+//        tradeEngine.setExitPrice(order, takeProfit, TradeEngine.ExitMode.TAKEPROFIT, true);
+//        tradeEngine.setExitPrice(order, stopLoss, TradeEngine.ExitMode.STOPLOSS, true);
     }
 //        double murrayLevelMultiplier = 1.0, atrMultiplier = 0.0, riskReward=1.0;
 //
@@ -160,6 +162,9 @@ public class MurrayLevelChangedExit extends Strategy {
 //                if (tradeEngine.series.getCurrentIndex() - openIndex > 4)
 //                    tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
 
+                int openIndex = tradeEngine.series.getIndex(order.openTime);
+                if (order.phase==0 && tradeEngine.series.getCurrentIndex() - openIndex > 7)
+                    tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
 
 //                if (order.type == Order.Type.BUY) {
 //                    if (tradeEngine.currentBar.getOpenPrice().doubleValue() > keltnerChannelLowerIndicator.getValue(tradeEngine.prevIndex).doubleValue()) {
