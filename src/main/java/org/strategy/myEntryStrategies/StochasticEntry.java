@@ -3,7 +3,6 @@ package org.strategy.myEntryStrategies;
 import org.strategy.Order;
 import org.strategy.Strategy;
 import org.strategy.TradeEngine;
-import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.KAMAIndicator;
 import org.ta4j.core.indicators.StochasticOscillatorDIndicator;
 import org.ta4j.core.indicators.StochasticOscillatorKIndicator;
@@ -11,7 +10,6 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
-import org.ta4j.core.indicators.mt4Selection.AntiAlligatorIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.indicators.volume.MoneyFlowIndicator;
 import org.ta4j.core.trading.rules.*;
@@ -154,7 +152,7 @@ public class StochasticEntry extends Strategy {
 //        System.out.println("------------ "+i);
 
 //        System.out.println(timeFrame+" --------------------  "+series.getIndex(time) + ": " + time);
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             ZonedDateTime time = tradeEngine.series.getCurrentTime();
             if (ruleForSell.isSatisfied(time)) {
                 tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.bid, time));

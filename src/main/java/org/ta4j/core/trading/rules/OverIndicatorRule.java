@@ -146,6 +146,8 @@ public class OverIndicatorRule extends AbstractRule {
         int indexForSecond=timeSeriesRepo.getIndex(time,periodForSecond);
         if (indexForFirst==indexForSecond) sameTimeFrame=true;
 
+
+
         if (indexForFirst>-1 && indexForSecond>-1) {
             Num valueForSecond = second.getValue(indexForSecond);
 //        System.out.println(first.getValue(indexForFirst)+" - "+second.getValue(indexForSecond));
@@ -162,7 +164,10 @@ public class OverIndicatorRule extends AbstractRule {
                     if (indexForFirst - i > -1) {
 
                         if (sameTimeFrame) valueForSecond=second.getValue(indexForSecond - i);
-                        Num vff=first.getValue(indexForFirst - i);
+//                        Num vff=first.getValue(indexForFirst - i);
+//                        if (indexForFirst>6) {
+//                            System.out.println("Break");
+//                        }
                         if (first.getValue(indexForFirst - i).isGreaterThan(valueForSecond)) {
                             if (satisfactionRatio == 0.0) {
                                 satisfied = true;

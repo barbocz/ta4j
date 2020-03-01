@@ -2,14 +2,15 @@ package org.strategy.myEntryStrategies;
 
 import org.strategy.Order;
 import org.strategy.Strategy;
-import org.ta4j.core.indicators.adx.ADXIndicator;
+import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.RSIIndicator;
+import org.ta4j.core.indicators.StochasticOscillatorDIndicator;
+import org.ta4j.core.indicators.StochasticOscillatorKIndicator;
 import org.ta4j.core.indicators.helpers.*;
+import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
-import org.ta4j.core.num.Num;
-import org.ta4j.core.trading.rules.InSlopeRule;
-import org.ta4j.core.trading.rules.OverIndicatorRule;
-import org.ta4j.core.trading.rules.UnderIndicatorRule;
+import org.ta4j.core.trading.rules.*;
 
 import java.awt.*;
 import java.time.ZonedDateTime;
@@ -26,55 +27,72 @@ public class MurrayEdgeEntry extends Strategy {
         }
         PreviousValueIndicator previousValueIndicatorLow = new PreviousValueIndicator(murrayMathIndicators[0]);
         PreviousValueIndicator previousValueIndicatorHigh = new PreviousValueIndicator(murrayMathIndicators[12]);
-        ADXIndicator adxIndicator = new ADXIndicator(tradeEngine.series, 5);
-        Num maxSlopeForAdx = tradeEngine.series.numOf(-5.0);
-        HighPriceIndicator highPriceIndicator = new HighPriceIndicator(tradeEngine.series);
-        HighestValueIndicator highestValueIndicator = new HighestValueIndicator(highPriceIndicator, 8);
-        LowPriceIndicator lowPriceIndicator = new LowPriceIndicator(tradeEngine.series);
-        LowestValueIndicator lowestValueIndicator = new LowestValueIndicator(lowPriceIndicator, 8);
 
+        StochasticOscillatorKIndicator stochasticOscillatorKIndicator = new StochasticOscillatorKIndicator(tradeEngine.series, 13);
+        StochasticOscillatorDIndicator stochasticOscillatorDIndicator = new StochasticOscillatorDIndicator(stochasticOscillatorKIndicator);
 
-        ruleForSell = new OverIndicatorRule(adxIndicator, 50.0, 5);
-        ruleForSell = ruleForSell.and(new InSlopeRule(adxIndicator, 1, maxSlopeForAdx));
-//        ruleForSell = ruleForSell.and(new IsNotEqualRule(previousValueIndicatorLow, murrayMathIndicators[0],8));
-        ruleForSell = ruleForSell.and(new OverIndicatorRule(highestValueIndicator, previousValueIndicatorHigh, 8));
+        MedianPriceIndicator medianPriceIndicator = new MedianPriceIndicator(tradeEngine.series);
+        EMAIndicator emaIndicator = new EMAIndicator(medianPriceIndicator, 3);
+        RSIIndicator rsiIndicator = new RSIIndicator(emaIndicator, 8);
+        RSIIndicator rsiIndicatorFast = new RSIIndicator(emaIndicator, 4);
+//        ADXIndicator adxIndicator = new ADXIndicator(tradeEngine.series, 5);
+//        Num maxSlopeForAdx = tradeEngine.series.numOf(-5.0);
+//        HighPriceIndicator highPriceIndicator = new HighPriceIndicator(tradeEngine.series);
+//        HighestValueIndicator highestValueIndicator = new HighestValueIndicator(highPriceIndicator, 8);
+//        LowPriceIndicator lowPriceIndicator = new LowPriceIndicator(tradeEngine.series);
+//        LowestValueIndicator lowestValueIndicator = new LowestValueIndicator(lowPriceIndicator, 8);
 
+//        ruleForSell= new IsMurrayReboundRule(tradeEngine.series, IsMurrayReboundRule.ReboundType.DOWN, IsMurrayReboundRule.MethodType.CHAIKIN);
+        ruleForSell = ruleForSell.and(new OverIndicatorRule(stochasticOscillatorDIndicator, stochasticOscillatorKIndicator));
+        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,1));
 
-        ruleForBuy = new OverIndicatorRule(adxIndicator, 50.0, 5);
-        ruleForBuy = ruleForBuy.and(new InSlopeRule(adxIndicator, 1, maxSlopeForAdx));
-//        ruleForBuy = ruleForBuy.and(new IsNotEqualRule(previousValueIndicatorLow, murrayMathIndicators[0],8));
-        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(lowestValueIndicator, previousValueIndicatorLow, 8));
+//        ruleForSell = new CrossedDownIndicatorRule(stochasticOscillatorKIndicator, 92.0,13);
+//        ruleForSell = ruleForSell.and(new UnderIndicatorRule(rsiIndicator, 85));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(rsiIndicator, 85.0,8));
+//        ruleForSell = ruleForSell.and(new InSlopeRule(adxIndicator, 1, maxSlopeForAdx));
+////        ruleForSell = ruleForSell.and(new IsNotEqualRule(previousValueIndicatorLow, murrayMathIndicators[0],8));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(highestValueIndicator, previousValueIndicatorHigh, 8));
+
+//        ruleForBuy= new IsMurrayReboundRule(tradeEngine.series, IsMurrayReboundRule.ReboundType.UP, IsMurrayReboundRule.MethodType.CHAIKIN);
+        ruleForBuy = ruleForBuy.and(new OverIndicatorRule( stochasticOscillatorKIndicator,stochasticOscillatorDIndicator));
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(rsiIndicator, 20.0));
+        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL,1));
+
+//        ruleForBuy = new CrossedUpIndicatorRule(stochasticOscillatorKIndicator, 8.0,13);
+//        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(rsiIndicator, 15));
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(rsiIndicator, 15.0,8));
+//        ruleForBuy = ruleForBuy.and(new InSlopeRule(adxIndicator, 1, maxSlopeForAdx));
+////        ruleForBuy = ruleForBuy.and(new IsNotEqualRule(previousValueIndicatorLow, murrayMathIndicators[0],8));
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(lowestValueIndicator, previousValueIndicatorLow, 8));
 
 
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);
 
-        tradeEngine.log(murrayMathIndicators[10]);
-        MurrayMathIndicator m256=new MurrayMathIndicator(tradeEngine.series, 256, 10);
-        m256.indicatorColor= Color.RED;
-        tradeEngine.log(m256);
+        stochasticOscillatorKIndicator.subWindowIndex=4;
+        tradeEngine.log(stochasticOscillatorKIndicator);
 
-        MurrayMathIndicator m512=new MurrayMathIndicator(tradeEngine.series, 64, 10);
-        m512.indicatorColor= Color.ORANGE;
-        tradeEngine.log(m512);
+        stochasticOscillatorDIndicator.subWindowIndex=4;
+        stochasticOscillatorDIndicator.indicatorColor=Color.RED;
+        tradeEngine.log(stochasticOscillatorDIndicator);
 
-        tradeEngine.log(murrayMathIndicators[2]);
-        MurrayMathIndicator m256L=new MurrayMathIndicator(tradeEngine.series, 256, 2);
-        m256L.indicatorColor= Color.RED;
-        tradeEngine.log(m256L);
-
-        MurrayMathIndicator m512L=new MurrayMathIndicator(tradeEngine.series, 64, 2);
-        m512L.indicatorColor= Color.ORANGE;
-        tradeEngine.log(m512L);
+        MurrayMathFixedIndicator murrayMathIndicatorF[] = new MurrayMathFixedIndicator[13];
+        for (int i = 0; i < 13; i++) {
+            murrayMathIndicatorF[i] = new MurrayMathFixedIndicator(tradeEngine.series,  i, 38.0);
+        }
+        for (int i = 0; i < 13; i++) {
+            if (i % 2 != 0) murrayMathIndicatorF[i].indicatorColor = Color.GRAY;
+            tradeEngine.log(murrayMathIndicatorF[i]);
+        }
 
 //        emaIndicator.indicatorColor = Color.RED;
 //        tradeEngine.log(emaIndicator);
 //
 //
-        adxIndicator.subWindowIndex = 4;
-        tradeEngine.log(adxIndicator);
+//        adxIndicator.subWindowIndex = 4;
+//        tradeEngine.log(adxIndicator);
 
-        ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 4);
+        ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 5);
         chaikinIndicator.subWindowIndex = 5;
         tradeEngine.log(chaikinIndicator);
 
@@ -105,7 +123,7 @@ public class MurrayEdgeEntry extends Strategy {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             ZonedDateTime time = tradeEngine.series.getCurrentTime();
             if (ruleForSell.isSatisfied(time)) {
                 tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.bid, time));

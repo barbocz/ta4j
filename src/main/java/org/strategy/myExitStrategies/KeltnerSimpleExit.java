@@ -54,7 +54,7 @@ public class KeltnerSimpleExit extends Strategy {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             int strongBuy = 0;
 
             if (tradeEngine.openedOrders.size() > 0) {

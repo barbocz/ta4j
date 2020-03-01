@@ -66,7 +66,7 @@ public class ThreePhaseExit extends Strategy {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             double atrCorrection=atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()*0.1;
             for (Order order : tradeEngine.openedOrders) {
 

@@ -85,7 +85,7 @@ public class KeltnerExit_v2 extends Strategy {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             double atrValueCorrection =  2.5*atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
             double atrValueLimit = 4.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
             double atrStopLoss = 1.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();

@@ -92,7 +92,7 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
                             ZMQ.Socket TimeSeriesSocket = context.createSocket(SocketType.REP);
                             TimeSeriesSocket.bind("tcp://*:" + portNumber);
 
-                            int requestedBarNumber = 3000;
+                            int requestedBarNumber = 30000;
 
                             while (!Thread.currentThread().isInterrupted()) {
                                 byte[] reply = TimeSeriesSocket.recv(0);
@@ -416,6 +416,8 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
     public void onOneMinuteDataEvent(MT4TimeSeries eventSeries) {
 //        if (true) return;
 //        System.out.println("TimeSeriesRepo onOneMinuteDataEvent------------- " );
+
+
 
         List<Callable<Integer>> tasks = new ArrayList<>();
         if (tradeEngines.size() == 0) return;

@@ -61,21 +61,38 @@ public class TestExit extends Strategy {
 //
 ////            tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.STOPLOSS, false);
 //        } else order.closedAmount = order.openedAmount;
-
+        order.closedAmount = order.openedAmount;
     }
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
+//            for (Order order : tradeEngine.openedOrders) {
+//                int openIndex = tradeEngine.series.getIndex(order.openTime);
+//                if (tradeEngine.series.getCurrentIndex() - openIndex > 7)
+//                    tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
+//            }
             ordersToClose.clear();
 
+//            for (Order order : tradeEngine.openedOrders) {
+//                order.phase++;
+//                order.closedAmount = tradeEngine.initialAmount / barNumberLetOpen;
+//                order.closePrice=tradeEngine.timeSeriesRepo.bid;
+//                order.exitType = EXITRULE;
+//                tradeEngine.closeOrder(order);
+//            }
+
             for (Order order : tradeEngine.openedOrders) {
-                order.phase++;
-                order.closedAmount = tradeEngine.initialAmount / barNumberLetOpen;
-                order.closePrice=tradeEngine.timeSeriesRepo.bid;
-                order.exitType = EXITRULE;
-                tradeEngine.closeOrder(order);
+                int openIndex = tradeEngine.series.getIndex(order.openTime);
+                if (tradeEngine.series.getCurrentIndex() - openIndex > 7) {
+                    order.closedAmount = order.openedAmount;
+                    order.closePrice = tradeEngine.timeSeriesRepo.bid;
+                    order.exitType = EXITRULE;
+                    tradeEngine.closeOrder(order);
+                }
             }
+
+
             tradeEngine.openedOrders.removeIf((Order openedOrder) -> openedOrder.openedAmount == 0.0);
 
         }

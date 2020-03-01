@@ -2,21 +2,27 @@ package org.strategy.myEntryStrategies;
 
 import org.strategy.Order;
 import org.strategy.Strategy;
-import org.ta4j.core.indicators.*;
-import org.ta4j.core.indicators.adx.ADXIndicator;
-import org.ta4j.core.indicators.helpers.AvgIndicator;
+import org.ta4j.core.indicators.CCIIndicator;
+import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.helpers.MedianPriceIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
-import org.ta4j.core.indicators.mt4Selection.WaddahIndicator;
+import org.ta4j.core.indicators.mt4Selection.MurrayChangeIndicator;
+import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
+import org.ta4j.core.indicators.mt4Selection.ZoloIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
+import org.ta4j.core.indicators.volume.MoneyFlowIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.trading.rules.*;
+import org.ta4j.core.trading.rules.helpers.IsZoloSignalRule;
 
 import java.awt.*;
 import java.time.ZonedDateTime;
+
+import static org.ta4j.core.trading.rules.helpers.IsZoloSignalRule.ReboundType.DOWN;
 
 
 public class KeltnerEntry extends Strategy {
@@ -31,7 +37,6 @@ public class KeltnerEntry extends Strategy {
     public void init(){
 
         ClosePriceIndicator closePrice = new ClosePriceIndicator(tradeEngine.series);
-        MedianPriceIndicator medianPriceIndicator=new MedianPriceIndicator(tradeEngine.series);
 
 //        MurrayMathIndicator murrayMathIndicator0= new MurrayMathIndicator(tradeEngine.series,256,0);
 //        MurrayMathIndicator murrayMathIndicator12= new MurrayMathIndicator(tradeEngine.series,256,12);
@@ -39,19 +44,16 @@ public class KeltnerEntry extends Strategy {
 
 
         KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 54);
-        kcU = new KeltnerChannelUpperIndicator(kcM, 2.6, 54);
-        kcL = new KeltnerChannelLowerIndicator(kcM, 2.6, 54);
+        kcU = new KeltnerChannelUpperIndicator(kcM, 3.4, 54);
+        kcL = new KeltnerChannelLowerIndicator(kcM, 3.4, 54);
 
-//        KeltnerChannelMiddleIndicator kcM60 = new KeltnerChannelMiddleIndicator(tradeEngine.getTimeSeries(60), 8);
-//        KeltnerChannelUpperIndicator kcU60 = new KeltnerChannelUpperIndicator(kcM60, 1.3, 8);
-//        KeltnerChannelLowerIndicator kcL60 = new KeltnerChannelLowerIndicator(kcM60, 1.3, 8);
+//        KeltnerChannelMiddleIndicator kcM8 = new KeltnerChannelMiddleIndicator(tradeEngine.getTimeSeries(60), 34);
+//        KeltnerChannelUpperIndicator kcU8 = new KeltnerChannelUpperIndicator(kcM8, 3.4, 34);
+//        KeltnerChannelLowerIndicator kcL8 = new KeltnerChannelLowerIndicator(kcM8, 3.4, 34);
 
         ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 5);
-//        ADXIndicator adxIndicator = new ADXIndicator(tradeEngine.series, 3);
-//        AvgIndicator avgAdxIndicator=new AvgIndicator(adxIndicator,8);
 
 //        TradeCounterIndicator tradeCounterIndicator=new TradeCounterIndicator(tradeEngine);
-        CCIIndicator cciIndicator = new CCIIndicator(tradeEngine.series, 30);
 
 //        SMAIndicator shortSma = new SMAIndicator(closePrice, 2);
 //        SMAIndicator longSma = new SMAIndicator(closePrice, 8);
@@ -60,12 +62,16 @@ public class KeltnerEntry extends Strategy {
         Num cciUpperLimit = tradeEngine.series.numOf(250);
         Num cciLowerLimit = tradeEngine.series.numOf(-250);
 
-        EMAIndicator emaIndicator=new EMAIndicator(medianPriceIndicator,2);
+        EMAIndicator emaIndicator=new EMAIndicator(closePrice,3);
 
-//        KAMAIndicator kamaIndicator = new KAMAIndicator(closePrice,5,2,30);
+        MedianPriceIndicator medianPriceIndicator = new MedianPriceIndicator(tradeEngine.series);
 
-//        MedianPriceIndicator medianPriceIndicatorUpper=new MedianPriceIndicator(kcU,kcM);
-//        MedianPriceIndicator medianPriceIndicatorLower=new MedianPriceIndicator(kcL,kcM);
+        RSIIndicator rsiIndicator = new RSIIndicator(emaIndicator, 8);
+        RSIIndicator rsiIndicatorFast = new RSIIndicator(emaIndicator, 4);
+
+        ZoloIndicator zoloIndicatorUp=new ZoloIndicator(tradeEngine.series,true);
+        ZoloIndicator zoloIndicatorDown=new ZoloIndicator(tradeEngine.series,false);
+        MoneyFlowIndicator moneyFlowIndicator=new MoneyFlowIndicator(tradeEngine.series,5);
 
 //        MoneyFlowIndicator moneyFlowIndicator=new MoneyFlowIndicator(tradeEngine.series,8);
 
@@ -77,40 +83,40 @@ public class KeltnerEntry extends Strategy {
 //
 //        ruleForSell=closePriceOverKeltnerUpperIn8.and(closePriceOverKeltnerMiddle).and(chaikinOver0_4in8).and(noTradeOpen);
 
+//        ruleForSell = new OverIndicatorRule(closePrice, kcU, 8);
+//        ruleForSell = new UnderIndicatorRule(rsiIndicator, 90.0,3);
+//        ruleForSell = ruleForSell.and(new IsFallingRule(rsiIndicatorFast, 1, 1.0));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(longCci,cciUpperLimit ));
 
+        ruleForSell=new IsZoloSignalRule(tradeEngine.series, IsZoloSignalRule.ReboundType.DOWN);
 
-        ruleForSell = new OverIndicatorRule(closePrice, kcU, 8);
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU, 8));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcM));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(zoloIndicatorDown, 50));
+////        ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.45, 5));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 40));
 
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice,kcU60 ));
-//        ruleForSell = ruleForSell.and(new IsFallingRule(kamaIndicator,true));
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU8, 3));
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice, kcU));
-        ruleForSell = ruleForSell.and(new OverIndicatorRule(chaikinIndicator, 0.42, 6));
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(moneyFlowIndicator, 98, 8));
-//        ruleForSell = ruleForSell.and(new IsFallingRule(emaIndicator, true));
-//        ruleForSell = ruleForSell.and(new OverIndicatorRule(avgAdxIndicator,75.0));
-        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,5));
+        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY,1));
 
 //        ruleForSell = ruleForSell.or(new OverIndicatorRule(cciIndicator,tradeEngine.series.numOf(220)).
 //                and(new hasOpenOrder(tradeEngine, hasOpenOrder.OpenedOrderType.ONLY_SELL)).and(new UnderIndicatorRule(closePrice,kcU)));
 
 
 
-//        ruleForBuy = new IsRisingRule(avgIndicator, true);
-        ruleForBuy = new UnderIndicatorRule(closePrice, kcL, 8);
-//        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(closePrice, kcL60));
+        ruleForBuy=new IsZoloSignalRule(tradeEngine.series, IsZoloSignalRule.ReboundType.UP);
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL, 8));
+//        ruleForBuy = new OverIndicatorRule(rsiIndicator, 10.0,3);
+//        ruleForSell = ruleForSell.and(new IsRisingRule(rsiIndicatorFast, 1, 1.0));
+//        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(closePrice, kcL));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(longCci, cciLowerLimit));
 
-//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL8, 3     ));
-//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcL));
-        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.42, 6));
-
-//        ruleForBuy = ruleForBuy.and(new IsFallingRule(avgAdxIndicator, true));
-//        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(avgAdxIndicator,75.0));
-//        ruleForBuy = ruleForBuy.and(new IsRisingRule(kamaIndicator,true));
-//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(moneyFlowIndicator, 2, 8));
-//        ruleForBuy = ruleForBuy.and(new IsRisingRule(emaIndicator, true));
-        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL,5));
+//        ruleForBuy = new UnderIndicatorRule(closePrice, kcL, 2 );
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice, kcM));
+//        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(zoloIndicatorUp, 50));
+////        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(chaikinIndicator, -0.45, 5));
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(moneyFlowIndicator, 60));
+//        ruleForBuy = ruleForBuy.and(new IsRisingRule(emaIndicator, 1, 1.0));
+        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL,1));
 //        ruleForBuy = ruleForBuy.or(new UnderIndicatorRule(cciIndicator,tradeEngine.series.numOf(-220)).
 //                and(new hasOpenOrder(tradeEngine, hasOpenOrder.OpenedOrderType.ONLY_BUY)).and(new OverIndicatorRule(closePrice,kcL)));
 
@@ -123,12 +129,23 @@ public class KeltnerEntry extends Strategy {
 
 
 
-
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);
 
-        emaIndicator.indicatorColor=Color.RED;
-        tradeEngine.log(emaIndicator);
+        MurrayMathFixedIndicator murrayMathIndicators[] = new MurrayMathFixedIndicator[13];
+        for (int i = 0; i < 13; i++) {
+            murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i, 38);
+        }
+        for (int i = 0; i < 13; i++) {
+            if (i % 2 != 0) murrayMathIndicators[i].indicatorColor = Color.GRAY;
+            if (i == 2) murrayMathIndicators[i].indicatorColor = Color.GREEN;
+            if (i == 10) murrayMathIndicators[i].indicatorColor = Color.RED;
+            tradeEngine.log(murrayMathIndicators[i]);
+        }
+
+        MurrayChangeIndicator murrayChangeIndicator = new MurrayChangeIndicator(tradeEngine.series,38);
+        murrayChangeIndicator.subWindowIndex = 4;
+        tradeEngine.log(murrayChangeIndicator);
 
         kcU.indicatorColor=Color.WHITE;
         tradeEngine.log(kcU);
@@ -139,6 +156,9 @@ public class KeltnerEntry extends Strategy {
         kcL.indicatorColor=Color.WHITE;
         tradeEngine.log(kcL);
 
+
+        moneyFlowIndicator.subWindowIndex = 6;
+        tradeEngine.log(moneyFlowIndicator);
 //        kcU8.indicatorColor=Color.GRAY;
 //        tradeEngine.log(kcU8);
 //
@@ -146,16 +166,8 @@ public class KeltnerEntry extends Strategy {
 //        tradeEngine.log(kcL8);
 
 
-        longCci.subWindowIndex=4;
-        tradeEngine.log(longCci);
-
-
-
-
-
-//        avgIndicator.subWindowIndex=5;
-//        avgIndicator.indicatorColor=Color.RED;
-//        tradeEngine.log(avgIndicator);
+//        longCci.subWindowIndex=4;
+//        tradeEngine.log(longCci);
 
 //        testIndicator1.subWindowIndex=3;
 //        testIndicator1.indicatorColor=Color.RED;
@@ -163,11 +175,23 @@ public class KeltnerEntry extends Strategy {
 
 
 
-//        avgAdxIndicator.subWindowIndex=5;
-//        tradeEngine.log(avgAdxIndicator);
+//        moneyFlowIndicator.subWindowIndex=5;
+//        tradeEngine.log(moneyFlowIndicator);
 
         kcL.indicatorColor=Color.WHITE;
         tradeEngine.log(kcL);
+
+
+
+        zoloIndicatorUp.subWindowIndex = 5;
+        zoloIndicatorUp.indicatorColor=Color.GREEN;
+        tradeEngine.log(zoloIndicatorUp);
+
+
+
+        zoloIndicatorDown.subWindowIndex = 5;
+        zoloIndicatorDown.indicatorColor=Color.RED;
+        tradeEngine.log(zoloIndicatorDown);
 //
 //        kcL8.indicatorColor=Color.GRAY;
 //        tradeEngine.log(kcL8);
@@ -188,91 +212,42 @@ public class KeltnerEntry extends Strategy {
     }
 
     public void onTickEvent() throws Exception {
-//        System.out.println("onTickEvent------------- "+tradeEngine.series.getBid());
-//        if (buyOk) {
-//            if (tradeEngine.timeSeriesRepo.ask>buyLimit) {
-//                tradeEngine.onTradeEvent(Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask,tradeEngine.series.getCurrentTime()));
-//                buyOk=false;
-//            }
+//        if (tradeEngine.timeSeriesRepo.ask > buyLimit) {
+//            tradeEngine.onTradeEvent(Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime()));
+//            buyLimit = Double.MAX_VALUE;
 //        }
-//        if (sellOk) {
-//            if (tradeEngine.timeSeriesRepo.bid<sellLimit) {
-//                tradeEngine.onTradeEvent(Order.sell(orderAmount,tradeEngine.timeSeriesRepo.bid,tradeEngine.series.getCurrentTime()));
-//                sellOk=false;
-//            }
+//
+//
+//        if (tradeEngine.timeSeriesRepo.bid < sellLimit) {
+//            tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.bid, tradeEngine.series.getCurrentTime()));
+//            sellLimit = 0.0;
 //        }
 
     }
 
     public void onBarChangeEvent(int timeFrame) throws Exception{
-//        System.out.println("onBarChangeEvent------------- "+timeFrame);
-//        try {
-//            TimeUnit.SECONDS.sleep(timeFrame);
-//
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
+
+//        sellLimit = 0.0;
+//        buyLimit = Double.MAX_VALUE;
+//        if (ruleForSell.isSatisfied(tradeEngine.series.getCurrentTime())) {
+//            sellLimit = kcU.getValue(tradeEngine.currentBarIndex).doubleValue();
 //        }
-//        System.out.println("onBarChangeEvent------------- "+eventSeries.timeFrame+" cp: "+slowerClosePrice.getValue(timeSeriesRepo.getTimeSeries(3).getEndIndex()-1));
-//        System.out.println("onBarChangeEvent rule ------------- "+eventSeries.timeFrame+" cp: "+ruleForSell.isSatisfied(series.getEndIndex()-1));
-//        if (!strategy.ruleForSell.isSatisfied(eventSeries.getEndIndex())) System.out.println("NOT SELL");;
-//    if (series.getEndIndex()-1==990) {
-//        if (ruleForSell.isSatisfied(series.getEndTime()))
-//            System.out.println("Sell Entry: " + (series.getEndIndex() - 1)+"    "+eventSeries.timeFrame);
-//    }
-//        System.out.println(series.getEndIndex()-1);
-
-//        int i = series.getEndIndex();
-//        System.out.println("------------ "+i);
-
-//        System.out.println(timeFrame+" --------------------  "+series.getIndex(time) + ": " + time);
-        if (tradeEngine.timeFrame==timeFrame) {
-//            ZonedDateTime time=tradeEngine.series.getCurrentTime();
-
-            ZonedDateTime time=tradeEngine.series.getCurrentTime();
-
-//            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
-//            ZonedDateTime zdt= ZonedDateTime.parse("2019.08.02 10:54", dateFormatter.withZone(ZoneId.systemDefault()));
-//            if (tradeEngine.series.getCurrentTime().isAfter(zdt)) {
-//                System.out.println("BREAK");
-//            }
-
-//            if (tradeEngine.series.getCurrentIndex()==62) {
-//                System.out.println("HEREEEEEEEEEEE");
-//            }
+//        else if (ruleForBuy.isSatisfied(tradeEngine.series.getCurrentTime())) {
+//            buyLimit =  kcL.getValue(tradeEngine.currentBarIndex).doubleValue();
+//        }
 
 
-//            buyOk=ruleForBuy.isSatisfied(time);
-//            sellOk=ruleForSell.isSatisfied(time);
-//
-//            if (buyOk) buyLimit=kcL.getValue(tradeEngine.series.getPrevIndex()).doubleValue();
-//            if (sellOk) sellLimit=kcU.getValue(tradeEngine.series.getPrevIndex()).doubleValue();
-
-            if (ruleForSell.isSatisfied(time)) {
-//                System.out.println(tradeEngine.series.getIndex(time) + ". Sell Entry: " + time);
-                tradeEngine.onTradeEvent(Order.sell(orderAmount,tradeEngine.timeSeriesRepo.bid,time));
-            }
-            else if (ruleForBuy.isSatisfied(time)) {
-
-//                System.out.println(tradeEngine.series.getIndex(time) + ". Buy Entry: " + time);
-                tradeEngine.onTradeEvent(Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask,time));
-            }
-
-
-
+        if (ruleForBuy.isSatisfied(tradeEngine.series.getCurrentTime())) {
+            tradeEngine.onTradeEvent(Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime()));
+            buyLimit = Double.MAX_VALUE;
         }
 
-//        for (Indicator indicator : indicatorsForLog) {
-//            if (indicator.getTimeSeries().getPeriod() == timeFrame) {
-//                TimeSeries indicatorSeries = indicator.getTimeSeries();
-//                if (indicatorSeries.getEndIndex() > -1) {
-//                    Num iValue = (Num) indicator.getValue(indicatorSeries.getEndIndex() - 1);
-//                    logIndicator(indicator, indicatorSeries.getEndTime(), indicatorSeries.getEndIndex() - 1, iValue.doubleValue());
-//                }
-//            }
-//        }
 
-//    if (preIndex==series.getEndIndex()) System.out.println("HIBA------------------------");
-//        preIndex=series.getEndIndex();
+        if  (ruleForSell.isSatisfied(tradeEngine.series.getCurrentTime())) {
+            tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.bid, tradeEngine.series.getCurrentTime()));
+            sellLimit = 0.0;
+        }
+
 
     }
 

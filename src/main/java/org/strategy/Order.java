@@ -1,7 +1,10 @@
 package org.strategy;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Order implements Cloneable {
 
@@ -108,20 +111,26 @@ public class Order implements Cloneable {
     public ExitType exitType;
 
     public int id,parentId,barIndex, phase =0;
-    public double openedAmount =0.0,openPrice=0.0,closePrice=0.0,cost=0.0,profit=0.0,takeProfit=0.0,stopLoss=0.0,closedAmount=0.0;
+    public double openedAmount =0.0,openPrice=0.0,closePrice=0.0,cost=0.0,profit=0.0,takeProfit=0.0,stopLoss=0.0,closedAmount=0.0,comission=0.0;
     public double maxProfit=0.0,maxLoss=0.0;
+    public List<Order> childOrders=new ArrayList<>();
+
+    public double takeProfitTarget=0.0,stopLossTarget=0.0;
 
     public ZonedDateTime openTime,closeTime;
 
     // MT4-es paraméterek
-    public int mt4TicketNumber=0,mt4NewTicketNumber=0,mt4MagicNumber=0;
+    public int mt4TicketNumber=0,mt4NewTicketNumber=0;
+    public long mt4MagicNumber=0;
     public ZonedDateTime mt4OpenTime,mt4NewOpenTime,mt4CloseTime;
     public double mt4OpenPrice=0.0,mt4NewOpenPrice=0.0,mt4ClosePrice=0.0,mt4Profit=0.0;
     public String mt4Comment="";
 
     public boolean forcedClose=false;   // ha true akkor nem hívódik meg az Exit stratégia onExitEvent-je, hanem simán bezárásra kerül
 
-    public HashMap<String,Double> parameters=new HashMap<>();
+    public HashMap<String,Double> doubleParameters=new HashMap<>();
+    public HashMap<String,LinkedList<Double>> hashMapParameters=new HashMap<>();
+
 
     public Object clone()throws CloneNotSupportedException{
         return (Order)super.clone();

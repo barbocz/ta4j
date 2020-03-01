@@ -4,9 +4,6 @@ import org.strategy.Order;
 import org.strategy.Strategy;
 import org.strategy.TradeEngine;
 import org.ta4j.core.indicators.ParabolicSarIndicator;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-
-import java.awt.*;
 
 
 public class ParabolicSarExit extends Strategy  {
@@ -39,7 +36,7 @@ public class ParabolicSarExit extends Strategy  {
 
     public void onBarChangeEvent(int timeFrame) throws Exception{
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             for (Order order : tradeEngine.openedOrders) {
                 tradeEngine.setExitPrice(order, parabolicSarIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
 //                        tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);

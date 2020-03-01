@@ -163,7 +163,7 @@ public class KeltnerEntryWithCCI extends Strategy {
 //        System.out.println("------------ "+i);
 
 //        System.out.println(timeFrame+" --------------------  "+series.getIndex(time) + ": " + time);
-        if (tradeEngine.timeFrame==timeFrame) {
+        if (tradeEngine.period ==timeFrame) {
 //            ZonedDateTime time=tradeEngine.series.getCurrentTime();
 
             ZonedDateTime time=tradeEngine.series.getCurrentTime();

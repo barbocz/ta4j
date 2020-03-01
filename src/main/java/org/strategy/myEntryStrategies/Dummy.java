@@ -62,48 +62,14 @@ public class Dummy extends Strategy {
     }
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
-//        System.out.println("onBarChangeEvent------------- "+timeFrame);
-//        try {
-//            TimeUnit.SECONDS.sleep(timeFrame);
-//
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        System.out.println("onBarChangeEvent------------- "+eventSeries.timeFrame+" cp: "+slowerClosePrice.getValue(timeSeriesRepo.getTimeSeries(3).getEndIndex()-1));
-//        System.out.println("onBarChangeEvent rule ------------- "+eventSeries.timeFrame+" cp: "+ruleForSell.isSatisfied(series.getEndIndex()-1));
-//        if (!strategy.ruleForSell.isSatisfied(eventSeries.getEndIndex())) System.out.println("NOT SELL");;
-//    if (series.getEndIndex()-1==990) {
-//        if (ruleForSell.isSatisfied(series.getEndTime()))
-//            System.out.println("Sell Entry: " + (series.getEndIndex() - 1)+"    "+eventSeries.timeFrame);
-//    }
-//        System.out.println(series.getEndIndex()-1);
+            ZonedDateTime time=tradeEngine.series.getCurrentTime();
 
-//        int i = series.getEndIndex();
-//        System.out.println("------------ "+i);
-
-//        System.out.println(timeFrame+" --------------------  "+series.getIndex(time) + ": " + time);
-//        if (tradeEngine.timeFrame==timeFrame) {
-////            ZonedDateTime time=tradeEngine.series.getCurrentTime();
-//
-//            ZonedDateTime time=tradeEngine.series.getCurrentTime();
-//
-//
-//            if (ruleForSell.isSatisfied(time)) {
-////                System.out.println(tradeEngine.series.getIndex(time) + ". Sell Entry: " + time);
-//                tradeEngine.onTradeEvent(Order.sell(orderAmount,tradeEngine.timeSeriesRepo.bid,time));
-//            }
-//            else if (ruleForBuy.isSatisfied(time)) {
-//
-////                System.out.println(tradeEngine.series.getIndex(time) + ". Buy Entry: " + time);
-//                tradeEngine.onTradeEvent(Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask,time));
-//            }
-//
-//
-//    }
-
-
-
-
+            if (ruleForSell.isSatisfied(time)) {
+                tradeEngine.onTradeEvent(Order.sell(orderAmount,tradeEngine.timeSeriesRepo.bid,time));
+            }
+            else if (ruleForBuy.isSatisfied(time)) {
+                tradeEngine.onTradeEvent(Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask,time));
+            }
     }
 
 

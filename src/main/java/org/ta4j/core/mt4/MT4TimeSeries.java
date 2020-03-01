@@ -293,6 +293,9 @@ public class MT4TimeSeries implements TimeSeries {
                     if (Double.parseDouble(priceData[4]) < lowPrice)
                         lowPrice = Double.parseDouble(priceData[4]);
 
+//                    currentIndex = getIndex(currentTime);
+////                    if (currentIndex>300) System.out.println("openPrice: "+openPrice+"   summaAmount: "+summaAmount);
+//                    if (period==3 && currentIndex>300) System.out.println(getCurrentTime()+"  index: "+currentIndex+"   nextBarDate: "+nextBarDate);
 //                        if (zd.getDayOfWeek().equals(DayOfWeek.SATURDAY) || zd.getDayOfWeek().equals(DayOfWeek.SUNDAY)) continue;
                     if (currentTime.isAfter(nextBarDate.minusSeconds(1))) {
                         bar = new BaseBar(barDuration, nextBarDate, numFunction.apply(openPrice), numFunction.apply(highPrice)

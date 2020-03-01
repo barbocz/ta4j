@@ -2,7 +2,6 @@ package org.strategy.myEntryStrategies;
 
 import org.strategy.Order;
 import org.strategy.Strategy;
-import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.KAMAIndicator;
 import org.ta4j.core.indicators.adx.ADXIndicator;
 import org.ta4j.core.indicators.helpers.*;
@@ -11,7 +10,6 @@ import org.ta4j.core.indicators.mt4Selection.MbfxTimingIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayMathMultiIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.trading.rules.IsEqualRule;
-import org.ta4j.core.trading.rules.IsFallingRule;
 import org.ta4j.core.trading.rules.OverIndicatorRule;
 import org.ta4j.core.trading.rules.UnderIndicatorRule;
 
@@ -188,7 +186,7 @@ public class MurrayTwoTenEntry extends Strategy {
 //            correctionLevelLow = (murrayMathMultiLow + murrayMathMultiIndicatorExtremeLow.getValue(tradeEngine.currentBarIndex).doubleValue()) / 2.0;
 //        }
 
-        if (tradeEngine.timeFrame==timeFrame) {
+        if (tradeEngine.period ==timeFrame) {
 //            ZonedDateTime time=tradeEngine.series.getCurrentTime();
 
             ZonedDateTime time=tradeEngine.series.getCurrentTime();

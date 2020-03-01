@@ -158,7 +158,7 @@ public class MurrayMiddleEntry extends Strategy {
 //        System.out.println(timeFrame+" --------------------  "+series.getIndex(time) + ": " + time);
         buyOk=false;
         sellOk=false;
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
 //            ZonedDateTime time=tradeEngine.series.getCurrentTime();
             if (tradeEngine.currentBarIndex<256) return;
             ZonedDateTime time = tradeEngine.series.getCurrentTime();

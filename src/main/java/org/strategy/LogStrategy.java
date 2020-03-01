@@ -1,6 +1,5 @@
 package org.strategy;
 
-import org.ta4j.core.Bar;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.Rule;
 import org.ta4j.core.TimeSeries;
@@ -10,13 +9,11 @@ import java.io.*;
 import java.nio.file.*;
 import java.sql.*;
 import java.text.*;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.Date;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -104,9 +101,9 @@ public class LogStrategy {
         else throw new Exception("Error:Id is missing");
 
 
-        PreparedStatement preparedStatement = dbConnection.prepareStatement("update STRATEGY set BAR_NUMBER=?,PERIOD=?,SYMBOL=?,ENTRY_STATEGY=?,ENTRY_STRATEGY_NAME=?,EXIT_STRATEGY=?,EXIT_STRATEGY_NAME=?,START_TIME=?,FIRST_BAR_TIME=?,LAST_BAR_TIME=? WHERE STRATEGY_ID=?");
+        PreparedStatement preparedStatement = dbConnection.prepareStatement("update STRATEGY set BAR_NUMBER=?,PERIOD=?,SYMBOL=?,ENTRY_STATEGY=?,ENTRY_STRATEGY_NAME=?,EXIT_STRATEGY=?,EXIT_STRATEGY_NAME=?,START_TIME=?,FIRST_BAR_TIME=?,LAST_BAR_TIME=?,MAGIC_NUMBER=? WHERE STRATEGY_ID=?");
         preparedStatement.setInt(1, tradeEngine.series.getEndIndex());
-        preparedStatement.setInt(2, tradeEngine.timeFrame);
+        preparedStatement.setInt(2, tradeEngine.period);
         preparedStatement.setString(3, tradeEngine.timeSeriesRepo.symbol);
         preparedStatement.setString(4, getSourceContent(tradeEngine.entryStrategy));
         preparedStatement.setString(5, tradeEngine.entryStrategy.getClass().getName());
@@ -120,7 +117,8 @@ public class LogStrategy {
             preparedStatement.setString(9, "");
             preparedStatement.setString(10, "");
         }
-        preparedStatement.setInt(11, id);
+        preparedStatement.setLong(11, tradeEngine.mt4MagicNumber);
+        preparedStatement.setInt(12, id);
         preparedStatement.executeUpdate();
 
 //        updateStrategy = dbConnection.prepareStatement("INSERT INTO STRATEGY ( SOURCE, BAR_NUMBER ,PERIOD , SYMBOL ,TRADE_NUMBER , PROFITABLE_TRADES_RATIO ,EQUITY_MINIMUM ,BALANCE_DRAWDOWN ,\n" +
@@ -556,18 +554,19 @@ public class LogStrategy {
         if (tradeEngine.series.getEndIndex() < 1) return;
 
 //            if (tradeEngine.timeSeriesRepo.timeFramesForBarchange.size()==3) System.out.println("three "+tradeEngine.series.getCurrentTime().toString());
-        if (online && tradeEngine.timeFrame==timeFrame) {
+        if (online && tradeEngine.period ==timeFrame) {
             logStrategyResult();
             logFileForBars = new BufferedWriter(new FileWriter(logFileNameForBars, true));
         }
-        if (tradeEngine.timeFrame==timeFrame) logFileForBars.write(tradeEngine.series.toString(tradeEngine.series.getCurrentBar()) + "|" + decimalFormatWith2Dec.format(tradeEngine.balance) + "|" + decimalFormatWith2Dec.format(tradeEngine.equity) + "|" +tradeEngine.series.getIndex(tradeEngine.series.getCurrentBar().getEndTime())+"\r\n");
+        if (tradeEngine.period ==timeFrame) logFileForBars.write(tradeEngine.series.toString(tradeEngine.series.getCurrentBar()) + "|" + decimalFormatWith2Dec.format(tradeEngine.balance) + "|" + decimalFormatWith2Dec.format(tradeEngine.equity) + "|" +tradeEngine.series.getIndex(tradeEngine.series.getCurrentBar().getEndTime())+"\r\n");
 
-        if (online && tradeEngine.timeFrame==timeFrame) logFileForBars.close();
+        if (online && tradeEngine.period ==timeFrame) logFileForBars.close();
+
 
         if (tradeEngine.logLevel.ordinal() > TradeEngine.LogLevel.BASIC.ordinal())
             logIndicatorValue(timeFrame, tradeEngine.series.getCurrentTime());
-        if (tradeEngine.logLevel == TradeEngine.LogLevel.TOTAL && tradeEngine.timeFrame==timeFrame) logExitPrices();
-        if (tradeEngine.logLevel == TradeEngine.LogLevel.ANALYSE && tradeEngine.timeFrame==timeFrame) logForAnalyzing();
+        if (tradeEngine.logLevel == TradeEngine.LogLevel.TOTAL && tradeEngine.period ==timeFrame) logExitPrices();
+        if (tradeEngine.logLevel == TradeEngine.LogLevel.ANALYSE && tradeEngine.period ==timeFrame) logForAnalyzing();
 
 //        System.out.println("++++ "+tradeEngine.series.toString(tradeEngine.series.getCurrentBar()));
     }
@@ -929,12 +928,12 @@ public class LogStrategy {
         HashMap<String ,Double> profits=new HashMap<>();
         ZonedDateTime zdt;
         String key;
-        Double profit;
+        Double profit,totalProfit=0.0,totalFee=0.0;
         try {
             Statement statement = dbConnection.createStatement();
             ResultSet resultSet = statement.executeQuery("select * from STRATEGY_TRADE_HISTORY where STRATEGY_ID="+strategyId+" order by ORDER_ID");
             while (resultSet.next()) {
-                try {
+
                     if (resultSet.getString("CLOSE_TIME")==null) continue;
 //                    System.out.println(resultSet.getString("CLOSE_TIME"));
 
@@ -946,11 +945,17 @@ public class LogStrategy {
 //                    dateFormatter.parse(ohlcv.get(firstRowIndex)[0]).toInstant()
 //
 //                    ZonedDateTime zdt = dateFormatter.parse(resultSet.getString("CLOSE_TIME")).toInstant();
-                } catch (Exception e) {
-                    // ... handle parsing exception
-                }
+
+
+
 
             }
+
+            resultSet = statement.executeQuery("select TOTAL_PROFIT from STRATEGY where STRATEGY_ID="+strategyId);
+            if (resultSet.next()) totalProfit=resultSet.getDouble(1);
+            resultSet = statement.executeQuery("select 7*sum(CLOSE_AMOUNT)/100000 from STRATEGY_TRADE_HISTORY where STRATEGY_ID="+strategyId);
+            if (resultSet.next()) totalFee=resultSet.getDouble(1);
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -959,6 +964,9 @@ public class LogStrategy {
         for (String month: profits.keySet()){
             System.out.println(month+":  "+profits.get(month));
         }
+        System.out.println("");
+        System.out.println("Gross profit: "+totalProfit+",  total fee: "+totalFee+"  net profit: "+(totalProfit-totalFee));
+
 
 
     }

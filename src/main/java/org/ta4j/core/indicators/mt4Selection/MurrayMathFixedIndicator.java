@@ -32,10 +32,7 @@ import org.ta4j.core.indicators.helpers.LowestValueIndicator;
 import org.ta4j.core.num.NaN;
 import org.ta4j.core.num.Num;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Base class for price indicators
@@ -53,13 +50,21 @@ public class MurrayMathFixedIndicator extends CachedIndicator<Num> {
     private HashMap<Integer, HighestValueIndicator> highestIndicators = new HashMap<>();
     private HashMap<Integer, LowestValueIndicator> lowestIndicators = new HashMap<>();
 
-    Set<Integer> murrayPeriods = new HashSet<>(Arrays.asList(64, 128, 256, 512));
+    Set<Integer> murrayPeriods = new HashSet<>(Arrays.asList(32,64, 128, 256, 512,1024));
+//    LinkedList<Integer> murrayRanges=new LinkedList<>(Arrays.asList(38, 76, 153, 305, 610, 1221));
+
+
     //    List<Integer> murrayPeriods = Arrays.asList(128);
     private final int level;
     private Num[] buffer;
+    private final double murrayHeight;
+//    private final double murrayHeightFirstUpper;
+//    private final double murrayHeightSecondLower;
+//    private final double murrayHeightSecondUpper;
+//    private final int startRangeIndex;
 
 
-    public MurrayMathFixedIndicator(TimeSeries series, int level) {
+    public MurrayMathFixedIndicator(TimeSeries series, int level,double murrayHeight) {
         super(series);
         this.level = level;
         buffer = new Num[13];
@@ -67,15 +72,21 @@ public class MurrayMathFixedIndicator extends CachedIndicator<Num> {
             highestIndicators.put(murrayPeriod, new HighestValueIndicator(new HighPriceIndicator(series), murrayPeriod));
             lowestIndicators.put(murrayPeriod, new LowestValueIndicator(new LowPriceIndicator(series), murrayPeriod));
         }
-
+//        startRangeIndex=murrayRanges.indexOf(murrayHeight);
+        this.murrayHeight=murrayHeight/100000;
+//        murrayHeightFirstUpper=this.murrayHeight+0.00010;
+//        murrayHeightSecondLower=2*this.murrayHeight;
+//        murrayHeightSecondUpper=murrayHeightSecondLower+0.00010;
 
     }
+
+
 
 
     @Override
     protected Num calculate(int index) {
 
-        if (index < 512) return NaN.NaN;
+        if (index < 1024) return NaN.NaN;
 
 //        if (index==3785) {
 //            System.out.println("break");
@@ -181,10 +192,14 @@ public class MurrayMathFixedIndicator extends CachedIndicator<Num> {
 
         double dmml = (finalH - finalL) / 8;
 
-        if (dmml > 0.00038 && dmml < 0.00039 || dmml>0.00076 && dmml<0.00077) {
-            buffer[0] = numOf(finalL - dmml * 2); //-2/8
-            for (int i = 1; i < 13; i++) buffer[i] = buffer[i - 1].plus(numOf(dmml));
-        }
+        if (dmml<murrayHeight) return;
+        buffer[0] = numOf(finalL - dmml * 2); //-2/8
+        for (int i = 1; i < 13; i++) buffer[i] = buffer[i - 1].plus(numOf(dmml));
+
+
+//        if (dmml > murrayHeight && dmml < murrayHeightFirstUpper || dmml>murrayHeightSecondLower && dmml<murrayHeightSecondUpper) {
+//
+//        }
 
     }
 

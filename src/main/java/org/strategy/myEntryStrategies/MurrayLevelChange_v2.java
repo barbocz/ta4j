@@ -34,7 +34,7 @@ public class MurrayLevelChange_v2 extends Strategy {
 
         closePriceIndicator = new ClosePriceIndicator(tradeEngine.series);
         for (int i = 0; i < 13; i++) {
-            murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i);
+            murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i, 38.0);
         }
         ChaikinMoneyFlowIndicator chaikinIndicator = new ChaikinMoneyFlowIndicator(tradeEngine.series, 6);
         MedianPriceIndicator medianPriceIndicator = new MedianPriceIndicator(tradeEngine.series);
@@ -106,7 +106,7 @@ public class MurrayLevelChange_v2 extends Strategy {
                 if (currentOrder.type == Order.Type.SELL) sellCorrectionNumber++;
             }
             Order order = Order.sell(orderAmount, sellEntryLevel, tradeEngine.series.getCurrentTime());
-            order.parameters.put("entry", sellEntryLevel);
+            order.doubleParameters.put("entry", sellEntryLevel);
 //            order.parameters.put("correctionLevel",sellEntryLevel+murrayHeight);
 
             order.phase = sellCorrectionNumber;
@@ -123,7 +123,7 @@ public class MurrayLevelChange_v2 extends Strategy {
                 if (currentOrder.type == Order.Type.BUY) buyCorrectionNumber++;
             }
             Order order = Order.buy(orderAmount, buyEntryLevel, tradeEngine.series.getCurrentTime());
-            order.parameters.put("entry", buyEntryLevel);
+            order.doubleParameters.put("entry", buyEntryLevel);
 
             order.phase = buyCorrectionNumber;
             tradeEngine.onTradeEvent(order);
@@ -138,7 +138,7 @@ public class MurrayLevelChange_v2 extends Strategy {
     public void onBarChangeEvent(int timeFrame) throws Exception {
 //        System.out.println("onBarChangeEvent------------- "+timeFrame);
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
 
             ZonedDateTime time = tradeEngine.series.getCurrentTime();
 

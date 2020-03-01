@@ -80,7 +80,7 @@ public class KeltnerEntry_v3 extends Strategy {
     public void onBarChangeEvent(int timeFrame) throws Exception{
 //        System.out.println("onBarChangeEvent------------- "+timeFrame);
 
-        if (tradeEngine.timeFrame==timeFrame) {
+        if (tradeEngine.period ==timeFrame) {
 
 
             ZonedDateTime time=tradeEngine.series.getCurrentTime();

@@ -18,7 +18,6 @@ import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
 import org.ta4j.core.indicators.mt4Selection.AntiAlligatorIndicator;
 import org.ta4j.core.indicators.mt4Selection.LaguerreIndicator;
-import org.ta4j.core.indicators.mt4Selection.WaddahIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.num.Num;
@@ -287,7 +286,7 @@ public class BollingerEntryProven extends Strategy {
 //        System.out.println("------------ "+i);
 
 //        System.out.println(timeFrame+" --------------------  "+series.getIndex(time) + ": " + time);
-        if (tradeEngine.timeFrame==timeFrame) {
+        if (tradeEngine.period ==timeFrame) {
 //            ZonedDateTime time=tradeEngine.series.getCurrentTime();
 
             ZonedDateTime time=tradeEngine.series.getCurrentTime();

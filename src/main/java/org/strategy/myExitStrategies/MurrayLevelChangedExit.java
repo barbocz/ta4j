@@ -4,21 +4,21 @@ import org.strategy.Order;
 import org.strategy.Strategy;
 import org.strategy.TradeEngine;
 import org.ta4j.core.indicators.ATRIndicator;
-import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
+import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
 import org.ta4j.core.num.Num;
 
 
 public class MurrayLevelChangedExit extends Strategy {
 
     ATRIndicator atrIndicator;
-    MurrayMathFixedIndicator murrayMathIndicators[] = new MurrayMathFixedIndicator[13];
+    MurrayMathIndicator murrayMathIndicators[] = new MurrayMathIndicator[13];
 
 
     public void init() {
 
 
         for (int i = 0; i < 13; i++) {
-            murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i);
+            murrayMathIndicators[i] = new MurrayMathIndicator(tradeEngine.series,128, i);
         }
 
 
@@ -26,9 +26,9 @@ public class MurrayLevelChangedExit extends Strategy {
 
 
     public void onTradeEvent(Order order) {
-        Num entryLevel = tradeEngine.series.numOf(order.parameters.get("entry"));
+//        Num entryLevel = tradeEngine.series.numOf(order.parameters.get("entry"));
         double takeProfit = 0.0, stopLoss = 0.0;
-
+        Num entryLevel=tradeEngine.series.numOf(order.openPrice);
         for (int i = 0; i < 13; i++) {
             if (murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).isGreaterThan(entryLevel)) {
                 if (order.type == Order.Type.BUY) takeProfit = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
@@ -44,6 +44,8 @@ public class MurrayLevelChangedExit extends Strategy {
             }
         }
         double height=murrayMathIndicators[1].getValue(tradeEngine.currentBarIndex).doubleValue() - murrayMathIndicators[0].getValue(tradeEngine.currentBarIndex).doubleValue();
+//        double l1=murrayMathIndicators[1].getValue(tradeEngine.currentBarIndex).doubleValue();
+//        double l0=murrayMathIndicators[1].getValue(tradeEngine.currentBarIndex).doubleValue();
         if (stopLoss == 0.0) {
             if (order.type == Order.Type.BUY) stopLoss=entryLevel.doubleValue()-height;
             else stopLoss=entryLevel.doubleValue()+height;
@@ -101,13 +103,13 @@ public class MurrayLevelChangedExit extends Strategy {
 //        }
 //
 //        if (order.type == Order.Type.BUY) {
-//            takeProfit=takeProfit - atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-//            stopLoss=stopLoss - atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-//        } else {
-//            takeProfit=takeProfit + atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-//            stopLoss=stopLoss + atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-//        }
-//
+////            takeProfit=takeProfit - atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
+////            stopLoss=stopLoss - atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
+////        } else {
+////            takeProfit=takeProfit + atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
+////            stopLoss=stopLoss + atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
+////        }
+////
 //        tradeEngine.setExitPrice(order, takeProfit, TradeEngine.ExitMode.TAKEPROFIT, true);
 //        tradeEngine.setExitPrice(order, stopLoss, TradeEngine.ExitMode.STOPLOSS, true);
 
@@ -142,7 +144,7 @@ public class MurrayLevelChangedExit extends Strategy {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             for (Order order : tradeEngine.openedOrders) {
 
 

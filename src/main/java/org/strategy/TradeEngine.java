@@ -44,7 +44,7 @@ public class TradeEngine {
     public List<Integer> timeFrames = new ArrayList<>();
 
     public TimeSeries series;
-    public int timeFrame, currentBarIndex;
+    public int period, currentBarIndex;
 
 
     public boolean islogged = false, backtestMode = false, detailedLogMode = true;
@@ -79,6 +79,7 @@ public class TradeEngine {
     JSONParser jsonParser = new JSONParser();
     boolean openOrdersWereClosedBeforeMt4Trading=false;
     double mt4Profit=0.0;
+    long mt4MagicNumber=0;
 
     public enum ExitMode {
         TAKEPROFIT,
@@ -96,21 +97,24 @@ public class TradeEngine {
 
     public LogLevel logLevel = LogLevel.NONE;
 
-    public TradeEngine(TimeSeriesRepo timeSeriesRepo, int timeFrame, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller, LogLevel logLevel) {
-        this(timeSeriesRepo, timeFrame, entryStrategy, exitStrategy, controller);
+    public TradeEngine(TimeSeriesRepo timeSeriesRepo, int period, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller, LogLevel logLevel) {
+        this(timeSeriesRepo, period, entryStrategy, exitStrategy, controller);
         this.logLevel = logLevel;
+
+
     }
 
-    public TradeEngine(TimeSeriesRepo timeSeriesRepo, int timeFrame, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller) {
+    public TradeEngine(TimeSeriesRepo timeSeriesRepo, int period, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller) {
 
         this.entryStrategy = entryStrategy;
         this.exitStrategy = exitStrategy;
-        this.timeFrame = timeFrame;
+        this.period = period;
         this.timeSeriesRepo = timeSeriesRepo;
         this.tradeCenter = controller;
         symbol = timeSeriesRepo.symbol;
+        mt4MagicNumber=Math.abs(entryStrategy.getClass().getSimpleName().hashCode()+exitStrategy.getClass().getSimpleName().hashCode());
 
-        series = getTimeSeries(timeFrame);
+        series = getTimeSeries(period);
 
         if (timeSeriesRepo.processType == TimeSeriesRepo.ProcessType.MT4) {  // MT4 feedelés esetén kinyitni a 6000 portot a trade-ek kezelésére, MT4 oldalon ehhez elindítani a TradeManager EA-t
             context = new ZContext();
@@ -119,8 +123,8 @@ public class TradeEngine {
             socket.setReceiveTimeOut(1000);
         }
 
-        System.out.print("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + timeFrame + " timeframe and " + symbol + " instrument");
-        logger.info("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + timeFrame + " timeframe and " + symbol + " instrument");
+        System.out.print("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + period + " timeframe and " + symbol + " instrument, magic: "+mt4MagicNumber+" with ");
+        logger.info("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + period + " timeframe and " + symbol + " instrument, magic: "+mt4MagicNumber+" with ");
     }
 
 
@@ -180,13 +184,14 @@ public class TradeEngine {
 //            System.out.println(currentBarIndex + " - " + series.getCurrentTime());
 //        }
 
+
         order.id = orderIndex;
         order.barIndex = series.getCurrentIndex();
         order.openedAmount = initialAmount;
+        order.mt4MagicNumber = mt4MagicNumber;
+        order.mt4Comment = entryStrategy.getClass().getSimpleName();
 
 
-        if (order.type == Order.Type.BUY) lastBuyOrder = order;
-        if (order.type == Order.Type.SELL) lastSellOrder = order;
 
         if (mt4TradeIsAllowed()) mt4OpenOrder(order);
 
@@ -231,6 +236,7 @@ public class TradeEngine {
         exitStrategy.onBarChangeEvent(timeFrame);
 
 
+
         if (logLevel != LogLevel.NONE) logStrategy.onBarChangeEvent(timeFrame);
 
 //        if (islogged) logIndicator(timeFrame, series.getCurrentTime());
@@ -254,6 +260,10 @@ public class TradeEngine {
     }
 
     public void onOneMinuteDataEvent() {
+
+//        System.out.println("currentBarIndex: "+currentTradeTime+"  "+currentTradeTime);
+//        System.out.println("getCurrentBar: "+series.getBar(series.getEndIndex()).getBeginTime());
+
         entryStrategy.onOneMinuteDataEvent();
         exitStrategy.onOneMinuteDataEvent();
 
@@ -371,6 +381,7 @@ public class TradeEngine {
 
                 order.closeTime = series.getCurrentTime();
                 order.profit = order.getClosedProfit();
+                order.comission=order.closedAmount*0.00007;
                 if (order.profit > 0.0) profitableTrade++;
                 if (order.profit < 0.0) losingTrade++;
 
@@ -383,6 +394,9 @@ public class TradeEngine {
 
                 if (logLevel != LogLevel.NONE) logStrategy.logTrade(false, closedOrder);
                 closedOrders.add(closedOrder);
+
+                if (closedOrder.type == Order.Type.BUY) lastBuyOrder = closedOrder;
+                if (closedOrder.type == Order.Type.SELL) lastSellOrder = closedOrder;
 
                 balance += order.profit;
                 if (balance > lastBalanceMaximum) {
@@ -469,6 +483,9 @@ public class TradeEngine {
             for (Integer timeFrame : timeFrames) {
                 currentSeries = timeSeriesRepo.getTimeSeries(timeFrame);
                 index = currentSeries.getIndex(time);
+//                if (index>14665) {
+//                    System.out.println("break");
+//                }
 //                System.out.println("timeFrame: "+timeFrame+", index:"+index);
                 if (index != lastBarIndexes.get(timeFrame) && index > 0) {
 //                    System.out.println("onBarChangeEvent on timeFrame: "+timeFrame);
@@ -507,6 +524,12 @@ public class TradeEngine {
         if (logLevel != LogLevel.NONE) logStrategy.setAutoCommit(true);
 
         if (logLevel.ordinal() > LogLevel.BASIC.ordinal()) logStrategy.getMT4data(logStrategy.id);
+
+        double openProfit=0.0;
+        for (Order order: openedOrders) {
+            openProfit+=order.getCurrentProfit(timeSeriesRepo.coreSeries.getBar(timeSeriesRepo.coreSeries.getEndIndex()).getClosePrice().doubleValue());
+        }
+        if (openedOrders.size()>0) System.out.println("Left opened: "+openedOrders.size()+ " with profit "+openProfit);
 
         logStrategy.getProfitByMonth(logStrategy.id);
 

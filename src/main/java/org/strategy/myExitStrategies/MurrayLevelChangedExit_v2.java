@@ -17,7 +17,7 @@ public class MurrayLevelChangedExit_v2 extends Strategy {
 
 
         for (int i = 0; i < 13; i++) {
-            murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i);
+            murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i, 38.0);
         }
 
 
@@ -97,7 +97,7 @@ public class MurrayLevelChangedExit_v2 extends Strategy {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             for (Order order : tradeEngine.openedOrders) {
 
 

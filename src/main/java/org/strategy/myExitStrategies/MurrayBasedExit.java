@@ -4,7 +4,6 @@ import org.strategy.Order;
 import org.strategy.Strategy;
 import org.strategy.TradeEngine;
 import org.ta4j.core.indicators.ATRIndicator;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
 
 
@@ -127,7 +126,7 @@ public class MurrayBasedExit extends Strategy {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             for (Order order : tradeEngine.openedOrders) {
 
 

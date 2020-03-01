@@ -67,7 +67,7 @@ public class MurrayTwoTenExit extends Strategy  {
 
     public void onBarChangeEvent(int timeFrame) throws Exception{
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             murrayRange =murrayMathMultiIndicatorExtremeHigh.getValue(tradeEngine.currentBarIndex).doubleValue() - murrayMathMultiIndicatorHigh.getValue(tradeEngine.currentBarIndex).doubleValue();
             for (Order order : tradeEngine.openedOrders) {
 

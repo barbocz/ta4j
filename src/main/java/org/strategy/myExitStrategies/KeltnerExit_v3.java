@@ -9,7 +9,6 @@ import org.ta4j.core.indicators.helpers.*;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
-import org.ta4j.core.trading.rules.OverIndicatorRule;
 
 
 public class KeltnerExit_v3 extends Strategy {
@@ -75,7 +74,7 @@ public class KeltnerExit_v3 extends Strategy {
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
             for (Order order : tradeEngine.openedOrders) {
 
 

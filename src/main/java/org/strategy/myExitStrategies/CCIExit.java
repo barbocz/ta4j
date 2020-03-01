@@ -3,13 +3,7 @@ package org.strategy.myExitStrategies;
 import org.strategy.Order;
 import org.strategy.Strategy;
 import org.strategy.TimeSeriesRepo;
-import org.strategy.TradeEngine;
 import org.ta4j.core.indicators.CCIIndicator;
-import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
-import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
-import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
-import org.ta4j.core.trading.rules.OverIndicatorRule;
 
 
 public class CCIExit extends Strategy  {
@@ -80,7 +74,7 @@ public class CCIExit extends Strategy  {
 
     public void onBarChangeEvent(int timeFrame) throws Exception{
 
-        if (tradeEngine.timeFrame == timeFrame) {
+        if (tradeEngine.period == timeFrame) {
 
             for (Order order : tradeEngine.openedOrders) {
 
