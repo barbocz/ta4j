@@ -184,31 +184,32 @@ public class TradeEngine {
 //            System.out.println(currentBarIndex + " - " + series.getCurrentTime());
 //        }
 
-
         order.id = orderIndex;
         order.barIndex = series.getCurrentIndex();
         order.openedAmount = initialAmount;
         order.mt4MagicNumber = mt4MagicNumber;
         order.mt4Comment = entryStrategy.getClass().getSimpleName();
 
-
+        exitStrategy.onTradeEvent(order);
 
         if (mt4TradeIsAllowed()) mt4OpenOrder(order);
 
         if (logLevel != LogLevel.NONE) logStrategy.logTrade(true, order);
 
-        orderIndex++;
         openedOrders.add(order);
+
+        orderIndex++;
 //        System.out.println(order.id + ". "+order.type + "  "+order.openTime);
-        exitStrategy.onTradeEvent(order);
+
 
     }
 
     //
     public void onTickEvent() throws Exception {
-        checkExit();
+
         exitStrategy.onTickEvent();
         entryStrategy.onTickEvent();
+        checkExit();
 
     }
 
@@ -614,7 +615,7 @@ public class TradeEngine {
         mt4Order.put("action", "TRADE_OPEN");
         mt4Order.put("type", order.type.mt4OrderType());
         mt4Order.put("symbol", symbol);
-        mt4Order.put("lot", order.openedAmount / 1000000);
+        mt4Order.put("lot", order.openedAmount / 100000);
         mt4Order.put("stopLoss",order.stopLoss);
         mt4Order.put("takeProfit", order.takeProfit);
         mt4Order.put("magicNumber", order.mt4MagicNumber);

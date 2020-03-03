@@ -125,7 +125,8 @@ public class DeMarkPivotPointIndicator extends RecursiveCachedIndicator<Num> {
 		}
 
 		// index = last bar in same timeFrame, index-1 = first bar in previous timeFrame
-        long previousPeriod = getPreviousPeriod(currentBar, index-1);
+        long previousPeriod=0;
+		if (index>1) previousPeriod= getPreviousPeriod(currentBar, index-1);
 		while(index-1 >= getTimeSeries().getBeginIndex() && getPeriod(getTimeSeries().getBar(index-1)) == previousPeriod){ // while bar-n in previous timeFrame
 			index--;
 			previousBars.add(index);
@@ -134,6 +135,7 @@ public class DeMarkPivotPointIndicator extends RecursiveCachedIndicator<Num> {
 	}
 
 	private long getPreviousPeriod(Bar bar, int indexOfPreviousBar) {
+
 		switch (timeLevel) {
             case DAY: // return previous day
                 int prevCalendarDay =  bar.getEndTime().minusDays(1).getDayOfYear();

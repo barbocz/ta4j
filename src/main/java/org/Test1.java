@@ -31,8 +31,9 @@ public class Test1 {
 
         String backTestFileName="smallBacktestEUR.csv";
 //        backTestFileName="smallestBacktestEUR.csv";
-//        backTestFileName="backtest.csv";
+        backTestFileName="backtest.csv";
 //        backTestFileName="2019nov.csv";
+//        backTestFileName="2018nov.csv";
         backTestFileName="backtestEUR.csv";
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("USDJPY","backTestJPY.csv","yyyy.MM.dd HH:mm");

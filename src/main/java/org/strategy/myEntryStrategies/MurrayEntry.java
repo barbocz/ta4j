@@ -2,10 +2,17 @@ package org.strategy.myEntryStrategies;
 
 import org.strategy.Order;
 import org.strategy.Strategy;
+import org.ta4j.core.indicators.CoppockCurveIndicator;
+import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
+import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
+import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
 import org.ta4j.core.indicators.mt4Selection.LaguerreIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayChangeIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
 import org.ta4j.core.indicators.mt4Selection.ZoloIndicator;
+import org.ta4j.core.indicators.pivotpoints.DeMarkPivotPointIndicator;
+import org.ta4j.core.indicators.pivotpoints.TimeLevel;
 import org.ta4j.core.indicators.volume.MoneyFlowIndicator;
 import org.ta4j.core.trading.rules.IsMurrayRebound_v2_Rule;
 import org.ta4j.core.trading.rules.OrderConditionRule;
@@ -45,6 +52,10 @@ public class MurrayEntry extends Strategy {
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);
 
+        DeMarkPivotPointIndicator deMarkPivotPointIndicator=new DeMarkPivotPointIndicator(tradeEngine.series, TimeLevel.DAY);
+        deMarkPivotPointIndicator.indicatorColor=Color.YELLOW;
+        tradeEngine.log(deMarkPivotPointIndicator);
+
         MurrayMathFixedIndicator murrayMathIndicators[] = new MurrayMathFixedIndicator[13];
         for (int i = 0; i < 13; i++) {
             murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i, murrayRange);
@@ -59,7 +70,19 @@ public class MurrayEntry extends Strategy {
         murrayChangeIndicator.subWindowIndex = 4;
         tradeEngine.log(murrayChangeIndicator);
 
+        KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 89);
+        KeltnerChannelUpperIndicator kcU = new KeltnerChannelUpperIndicator(kcM, 5.0, 89);
+        KeltnerChannelLowerIndicator kcL = new KeltnerChannelLowerIndicator(kcM, 5.0, 89);
 
+
+        kcU.indicatorColor=Color.RED;
+        tradeEngine.log(kcU);
+
+        kcM.indicatorColor=Color.WHITE;
+        tradeEngine.log(kcM);
+
+        kcL.indicatorColor=Color.GREEN;
+        tradeEngine.log(kcL);
 //        zoloIndicatorUp.subWindowIndex = 5;
 //        zoloIndicatorUp.indicatorColor = Color.GREEN;
 //        tradeEngine.log(zoloIndicatorUp);
@@ -72,6 +95,8 @@ public class MurrayEntry extends Strategy {
 //        mbfxTimingIndicator.subWindowIndex = 5;
 //        mbfxTimingIndicator.indicatorColor = Color.RED;
 //        tradeEngine.log(mbfxTimingIndicator);
+
+
 
         laguerreIndicator.subWindowIndex = 5;
         laguerreIndicator.indicatorColor = Color.RED;

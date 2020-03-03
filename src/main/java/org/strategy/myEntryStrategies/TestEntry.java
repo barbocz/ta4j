@@ -3,11 +3,19 @@ package org.strategy.myEntryStrategies;
 import org.strategy.Order;
 import org.strategy.Strategy;
 import org.ta4j.core.indicators.CCIIndicator;
+import org.ta4j.core.indicators.CoppockCurveIndicator;
 import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.SMAIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
+import org.ta4j.core.indicators.pivotpoints.DeMarkPivotPointIndicator;
+import org.ta4j.core.indicators.pivotpoints.TimeLevel;
+import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.indicators.volume.ChaikinMoneyFlowIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.trading.rules.OverIndicatorRule;
@@ -41,9 +49,9 @@ public class TestEntry extends Strategy {
 //        MurrayMathIndicator murrayMathIndicator6= new MurrayMathIndicator(tradeEngine.series,256,6);
 
 
-        KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 8);
-        kcU = new KeltnerChannelUpperIndicator(kcM, 0.6, 8);
-        kcL = new KeltnerChannelLowerIndicator(kcM, 0.6, 8);
+        KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 89);
+        kcU = new KeltnerChannelUpperIndicator(kcM, 5.0, 89);
+        kcL = new KeltnerChannelLowerIndicator(kcM, 5.0, 89);
 
 //        KeltnerChannelMiddleIndicator kcM8 = new KeltnerChannelMiddleIndicator(tradeEngine.getTimeSeries(60), 34);
 //        KeltnerChannelUpperIndicator kcU8 = new KeltnerChannelUpperIndicator(kcM8, 3.4, 34);
@@ -116,17 +124,27 @@ public class TestEntry extends Strategy {
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);
 
-        emaIndicator.indicatorColor=Color.RED;
-        tradeEngine.log(emaIndicator);
+//        SMAIndicator smaIndicator=new SMAIndicator(closePrice,154);
+//        BollingerBandsMiddleIndicator bollingerBandsMiddleIndicator=new BollingerBandsMiddleIndicator(smaIndicator);
+//        StandardDeviationIndicator standardDeviationIndicator=new StandardDeviationIndicator(closePrice,154);
+//        BollingerBandsLowerIndicator bollingerBandsLowerIndicator=new BollingerBandsLowerIndicator(bollingerBandsMiddleIndicator,standardDeviationIndicator,2.6);
+//        BollingerBandsUpperIndicator bollingerBandsUpperIndicator=new BollingerBandsUpperIndicator(bollingerBandsMiddleIndicator,standardDeviationIndicator,2.6);
 
-        kcU.indicatorColor=Color.WHITE;
+//        emaIndicator.indicatorColor=Color.RED;
+//        tradeEngine.log(emaIndicator);
+
+        kcU.indicatorColor=Color.RED;
         tradeEngine.log(kcU);
 
         kcM.indicatorColor=Color.WHITE;
         tradeEngine.log(kcM);
 
-        kcL.indicatorColor=Color.WHITE;
+        kcL.indicatorColor=Color.GREEN;
         tradeEngine.log(kcL);
+
+        DeMarkPivotPointIndicator deMarkPivotPointIndicator=new DeMarkPivotPointIndicator(tradeEngine.series, TimeLevel.DAY);
+        deMarkPivotPointIndicator.indicatorColor=Color.YELLOW;
+        tradeEngine.log(deMarkPivotPointIndicator);
 
 //        kcU8.indicatorColor=Color.GRAY;
 //        tradeEngine.log(kcU8);
@@ -134,9 +152,10 @@ public class TestEntry extends Strategy {
 //        kcU8.indicatorColor=Color.GRAY;
 //        tradeEngine.log(kcL8);
 
+        CoppockCurveIndicator coppockCurveIndicator=new CoppockCurveIndicator(closePrice);
 
-        longCci.subWindowIndex=4;
-        tradeEngine.log(longCci);
+        coppockCurveIndicator.subWindowIndex=4;
+        tradeEngine.log(coppockCurveIndicator);
 
 //        testIndicator1.subWindowIndex=3;
 //        testIndicator1.indicatorColor=Color.RED;
@@ -147,8 +166,8 @@ public class TestEntry extends Strategy {
 //        moneyFlowIndicator.subWindowIndex=5;
 //        tradeEngine.log(moneyFlowIndicator);
 
-        kcL.indicatorColor=Color.WHITE;
-        tradeEngine.log(kcL);
+//        kcL.indicatorColor=Color.WHITE;
+//        tradeEngine.log(kcL);
 //
 //        kcL8.indicatorColor=Color.GRAY;
 //        tradeEngine.log(kcL8);
@@ -228,15 +247,15 @@ public class TestEntry extends Strategy {
 //            if (buyOk) buyLimit=kcL.getValue(tradeEngine.series.getPrevIndex()).doubleValue();
 //            if (sellOk) sellLimit=kcU.getValue(tradeEngine.series.getPrevIndex()).doubleValue();
 
-            if (ruleForSell.isSatisfied(time)) {
-//                System.out.println(tradeEngine.series.getIndex(time) + ". Sell Entry: " + time);
-                tradeEngine.onTradeEvent(Order.sell(orderAmount,tradeEngine.timeSeriesRepo.bid,time));
-            }
-            else if (ruleForBuy.isSatisfied(time)) {
-
-//                System.out.println(tradeEngine.series.getIndex(time) + ". Buy Entry: " + time);
-                tradeEngine.onTradeEvent(Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask,time));
-            }
+//            if (ruleForSell.isSatisfied(time)) {
+////                System.out.println(tradeEngine.series.getIndex(time) + ". Sell Entry: " + time);
+//                tradeEngine.onTradeEvent(Order.sell(orderAmount,tradeEngine.timeSeriesRepo.bid,time));
+//            }
+//            else if (ruleForBuy.isSatisfied(time)) {
+//
+////                System.out.println(tradeEngine.series.getIndex(time) + ". Buy Entry: " + time);
+//                tradeEngine.onTradeEvent(Order.buy(orderAmount,tradeEngine.timeSeriesRepo.ask,time));
+//            }
 
 
 
