@@ -12,147 +12,93 @@ import org.ta4j.core.indicators.helpers.*;
 import org.ta4j.core.indicators.keltner.KeltnerChannelLowerIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelMiddleIndicator;
 import org.ta4j.core.indicators.keltner.KeltnerChannelUpperIndicator;
+import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 
 
 public class BollingerExit extends Strategy {
     KeltnerChannelMiddleIndicator keltnerChannelMiddleIndicator;
-    KeltnerChannelUpperIndicator keltnerChannelUpperIndicator;
-    KeltnerChannelLowerIndicator keltnerChannelLowerIndicator;
+
     HighestValueIndicator highestValueIndicator;
     LowestValueIndicator lowestValueIndicator;
-    ATRIndicator atrIndicator;
-    BollingerBandsMiddleIndicator bollingerBandsMiddleIndicator;
-    BollingerBandsLowerIndicator bollingerBandsLowerIndicator;
-    BollingerBandsUpperIndicator bollingerBandsUpperIndicator;
 
+    MurrayMathFixedIndicator murrayMathIndicators[] = new MurrayMathFixedIndicator[13];
+    Double murrayLevels[] = new Double[13];
+    final Double murrayRange = 30.0;
+    final Double murrayRangeInPip = murrayRange / 100000.0;
 
 
     public void init() {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(tradeEngine.series);
 
 
-        keltnerChannelMiddleIndicator = new KeltnerChannelMiddleIndicator(tradeEngine.series, 34);
-        keltnerChannelUpperIndicator = new KeltnerChannelUpperIndicator(keltnerChannelMiddleIndicator, 3.4, 34);
-        keltnerChannelLowerIndicator = new KeltnerChannelLowerIndicator(keltnerChannelMiddleIndicator, 3.4, 34);
+        keltnerChannelMiddleIndicator = new KeltnerChannelMiddleIndicator(tradeEngine.series, 89);
 
-
-        SMAIndicator smaIndicator=new SMAIndicator(closePrice,20);
-        bollingerBandsMiddleIndicator=new BollingerBandsMiddleIndicator(smaIndicator);
-        StandardDeviationIndicator standardDeviationIndicator=new StandardDeviationIndicator(closePrice,20);
-        bollingerBandsLowerIndicator=new BollingerBandsLowerIndicator(bollingerBandsMiddleIndicator,standardDeviationIndicator,1.6);
-        bollingerBandsUpperIndicator=new BollingerBandsUpperIndicator(bollingerBandsMiddleIndicator,standardDeviationIndicator,1.6);
 
         HighPriceIndicator highPriceIndicator = new HighPriceIndicator(tradeEngine.series);
         highestValueIndicator = new HighestValueIndicator(highPriceIndicator, 8);
-        atrIndicator = new ATRIndicator(tradeEngine.series, 34);
+
 
         LowPriceIndicator lowPriceIndicator = new LowPriceIndicator(tradeEngine.series);
         lowestValueIndicator = new LowestValueIndicator(lowPriceIndicator, 8);
+        for (int i = 0; i < 13; i++)
+            murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i, murrayRange);
 
 
     }
 
 
     public void onTradeEvent(Order order) {
-//        double atrValue = 5.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-//        if (order.type == Order.Type.BUY) {
-//
-//            tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-////                        tradeEngine.setExitPrice(order, keltnerChannelLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-//            if (order.openPrice - lowestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() < atrValue)
-//                tradeEngine.setExitPrice(order, order.openPrice - atrValue, TradeEngine.ExitMode.STOPLOSS, true);
-//            else
-//                tradeEngine.setExitPrice(order, lowestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-//
-//        } else {
-//            tradeEngine.setExitPrice(order, keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-////                        tradeEngine.setExitPrice(order, keltnerChannelUpperIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-//            if (highestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() - order.openPrice < atrValue)
-//                tradeEngine.setExitPrice(order, order.openPrice + atrValue, TradeEngine.ExitMode.STOPLOSS, true);
-//            else
-//                tradeEngine.setExitPrice(order, highestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-//        }
+        int murrayStopLossLevel;
+        if (order.type == Order.Type.BUY) {
+            murrayStopLossLevel = getMurrayRange(order.openPrice - murrayRangeInPip);
+            if (murrayStopLossLevel < 0) murrayStopLossLevel = 0;
+            order.stopLoss = murrayLevels[murrayStopLossLevel] - 0.00015;;
+
+            order.takeProfit = keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() - 0.00007;
+
+
+        } else {
+
+            order.stopLoss = order.openPrice + 0.00328;
+            murrayStopLossLevel = getMurrayRange(order.openPrice + murrayRangeInPip);
+            if (murrayStopLossLevel < 0 || murrayStopLossLevel == 12) murrayStopLossLevel = 12;
+            else murrayStopLossLevel++;
+            order.stopLoss = murrayLevels[murrayStopLossLevel]+ 0.00015;;
+
+            order.takeProfit = keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() + 0.00007;
+        }
 
     }
 
 
     public void onTickEvent() {
 //        System.out.println("onTickEvent------------- "+tradeEngine.timeSeriesRepo.bid);
-
+//        for (Order order : tradeEngine.openedOrders) {
+//            if (order.type == Order.Type.BUY && order.stopLoss<order.openPrice && order.openPrice+0.0005<tradeEngine.timeSeriesRepo.bid) order.stopLoss=order.openPrice;
+//            if (order.type == Order.Type.SELL && order.stopLoss>order.openPrice && order.openPrice-0.0005>tradeEngine.timeSeriesRepo.ask) order.stopLoss=order.openPrice;
+//        }
 
     }
 
     @Override
     public void onExitEvent(Order order) {
-        if (order.phase == 0 ) {
-            order.closedAmount = order.openedAmount / 2.0;
-            order.phase = 1;
-            if (order.type == Order.Type.BUY) {
-                tradeEngine.setExitPrice(order, bollingerBandsUpperIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, false);
-            } else {
-                tradeEngine.setExitPrice(order, bollingerBandsLowerIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, false);
-            }
-            tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.STOPLOSS, false);
-        } else order.closedAmount = order.openedAmount;
+     order.closedAmount = order.openedAmount;
 
     }
 
     public void onBarChangeEvent(int timeFrame) throws Exception {
+        for (int i = 0; i < 13; i++)
+            murrayLevels[i] = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
+        for (Order order : tradeEngine.openedOrders) {
+            if (order.type == Order.Type.BUY) order.takeProfit = keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() - 0.00007;
+            else order.takeProfit = keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() + 0.00007;
 
-        if (tradeEngine.period == timeFrame) {
-            double atrValueCorrection =  atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-            double atrValueLimit = 5.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-            double atrStopLoss = 1.0 * atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-            for (Order order : tradeEngine.openedOrders) {
+            int openIndex = tradeEngine.series.getIndex(order.openTime);
+            if (tradeEngine.series.getCurrentIndex() - openIndex > 14) tradeEngine.setExitPrice(order, order.openPrice, TradeEngine.ExitMode.ANY, true);
 
-                if (order.phase == 0) {
-                    if (order.type == Order.Type.BUY) {
-
-                        tradeEngine.setExitPrice(order, bollingerBandsMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-//                        tradeEngine.setExitPrice(order, bollingerBandsLowerIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-                        if (order.openPrice - lowestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() < atrValueCorrection || order.openPrice - lowestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() > atrValueLimit)
-                            tradeEngine.setExitPrice(order, order.openPrice - atrStopLoss, TradeEngine.ExitMode.STOPLOSS, true);
-                        else
-                            tradeEngine.setExitPrice(order, lowestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() - atrValueCorrection, TradeEngine.ExitMode.STOPLOSS, true);
-
-                    } else {
-                        tradeEngine.setExitPrice(order, bollingerBandsMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-//                        tradeEngine.setExitPrice(order, bollingerBandsUpperIndicator.getValue(tradeEngine.series.getPrevIndex()).doubleValue(), TradeEngine.ExitMode.STOPLOSS, true);
-                        if (highestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() - order.openPrice < atrValueCorrection || highestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() - order.openPrice>atrValueLimit)
-                            tradeEngine.setExitPrice(order, order.openPrice + atrStopLoss, TradeEngine.ExitMode.STOPLOSS, true);
-                        else
-                            tradeEngine.setExitPrice(order, highestValueIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()+ atrValueCorrection, TradeEngine.ExitMode.STOPLOSS, true);
-
-                    }
-
-                    int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex > 14)
-                    {
-                        if (order.type == Order.Type.BUY) atrValueCorrection = 0.1 * atrValueCorrection;
-                        else atrValueCorrection = -0.1 * atrValueCorrection;
-                        tradeEngine.setExitPrice(order, order.openPrice+atrValueCorrection, TradeEngine.ExitMode.ANY, true);
-                    }
-
-                } else {
-                    if (order.type == Order.Type.BUY) {
-                        tradeEngine.setExitPrice(order, bollingerBandsUpperIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-                    } else {
-                        tradeEngine.setExitPrice(order, bollingerBandsLowerIndicator.getValue(tradeEngine.currentBarIndex).doubleValue(), TradeEngine.ExitMode.TAKEPROFIT, true);
-                    }
-
-                    int openIndex = tradeEngine.series.getIndex(order.openTime);
-                    if (tradeEngine.series.getCurrentIndex() - openIndex >14)
-                    {
-                        if (order.type == Order.Type.BUY) atrValueCorrection = 0.1 * atrValueCorrection;
-                        else atrValueCorrection = -0.1 * atrValueCorrection;
-                        tradeEngine.setExitPrice(order, order.openPrice+atrValueCorrection, TradeEngine.ExitMode.ANY, true);
-                    }
-
-                }
-
-            }
         }
+
 
     }
 
@@ -160,6 +106,19 @@ public class BollingerExit extends Strategy {
     public void onOneMinuteDataEvent() {
 //        System.out.println(symbol+" "+series.getCurrentTime());
 
+    }
+
+    int getMurrayRange(double value) {
+        if (murrayLevels[6] > value) {
+            for (int i = 0; i < 6; i++) {
+                if (murrayLevels[i] <= value && murrayLevels[i + 1] > value) return (i);
+            }
+        } else {
+            for (int i = 6; i < 12; i++) {
+                if (murrayLevels[i] <= value && murrayLevels[i + 1] > value) return (i);
+            }
+        }
+        return -1;
     }
 
 

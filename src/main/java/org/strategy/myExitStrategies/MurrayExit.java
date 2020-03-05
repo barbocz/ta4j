@@ -87,6 +87,23 @@ public class MurrayExit extends Strategy {
 //        }
         if (tradeEngine.openedOrders.size() > 0) {
 
+            for (Order order : tradeEngine.openedOrders) {
+                if (order.type == Order.Type.BUY) {
+                    if (order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.ask - 0.0004 > order.openPrice) order.stopLoss = order.openPrice;
+                    if (tradeEngine.timeSeriesRepo.ask>order.takeProfitTarget) {
+                        order.stopLoss=order.openPrice + 0.0001;
+//                        order.takeProfitTarget=order.takeProfitTarget + 0.0001;
+                    }
+                }
+                else {
+                    if (order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0004 < order.openPrice)   order.stopLoss = order.openPrice;
+                    if (tradeEngine.timeSeriesRepo.bid<order.takeProfitTarget) {
+                        order.stopLoss=order.openPrice - 0.0001;
+//                        order.takeProfitTarget=order.takeProfitTarget - 0.0001;
+                    }
+                }
+            }
+
             ZonedDateTime time = tradeEngine.series.getCurrentTime();
             Order buyStartOrder = null, sellStartOrder = null;
             for (Order order : tradeEngine.openedOrders) {

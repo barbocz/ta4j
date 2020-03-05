@@ -14,29 +14,15 @@ public class Test1 {
     public static void main(String[] args) throws Exception {
 
 
-//        File srcFile=new File(System.getProperty("user.dir") + "\\ta4j-core\\log\\85_bars.csv");
-//        File dstFile=new File("C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\294B6FCE6F709DE82DA4C87FDBF1DE36\\MQL4\\Files\\85_bars.csv");
-//        try (FileInputStream fis = new FileInputStream(srcFile);
-//             FileOutputStream fos = new FileOutputStream(dstFile)) {
-//            int len;
-//            byte[] buffer = new byte[4096];
-//            while ((len = fis.read(buffer)) > 0) {
-//                fos.write(buffer, 0, len);
-//            }
-//        } catch (IOException e) {
-//            // ... handle IO exception
-//            e.printStackTrace();
-//        }
-
-
         String backTestFileName="smallBacktestEUR.csv";
 //        backTestFileName="smallestBacktestEUR.csv";
         backTestFileName="backtest.csv";
 //        backTestFileName="2019nov.csv";
 //        backTestFileName="2018nov.csv";
+//        backTestFileName="2019aug.csv";
+//        backTestFileName="backtestGBP.csv";
         backTestFileName="backtestEUR.csv";
-//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","EURUSD_3MONTH.csv","yyyy.MM.dd HH:mm");
-//        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("USDJPY","backTestJPY.csv","yyyy.MM.dd HH:mm");
+
         TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD",backTestFileName,"yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","smallBb"yyyy.MM.dd HH:mm");
 

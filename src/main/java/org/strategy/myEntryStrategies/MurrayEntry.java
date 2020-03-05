@@ -16,6 +16,8 @@ import org.ta4j.core.indicators.pivotpoints.TimeLevel;
 import org.ta4j.core.indicators.volume.MoneyFlowIndicator;
 import org.ta4j.core.trading.rules.IsMurrayRebound_v2_Rule;
 import org.ta4j.core.trading.rules.OrderConditionRule;
+import org.ta4j.core.trading.rules.OverIndicatorRule;
+import org.ta4j.core.trading.rules.UnderIndicatorRule;
 
 import java.awt.*;
 import java.time.ZonedDateTime;
@@ -27,17 +29,22 @@ public class MurrayEntry extends Strategy {
 
     public void init() {
 
-        ZoloIndicator zoloIndicatorUp = new ZoloIndicator(tradeEngine.series, true);
-        ZoloIndicator zoloIndicatorDown = new ZoloIndicator(tradeEngine.series, false);
+//        ZoloIndicator zoloIndicatorUp = new ZoloIndicator(tradeEngine.series, true);
+//        ZoloIndicator zoloIndicatorDown = new ZoloIndicator(tradeEngine.series, false);
         MoneyFlowIndicator moneyFlowIndicator = new MoneyFlowIndicator(tradeEngine.series, 5);
         MurrayChangeIndicator murrayChangeIndicator = new MurrayChangeIndicator(tradeEngine.series, murrayRange);
         LaguerreIndicator laguerreIndicator = new LaguerreIndicator(tradeEngine.series, 0.2);
+
+        KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 89);
+        KeltnerChannelUpperIndicator kcU = new KeltnerChannelUpperIndicator(kcM, 4.6, 89);
+        KeltnerChannelLowerIndicator kcL = new KeltnerChannelLowerIndicator(kcM, 4.6, 89);
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(tradeEngine.series);
 //        VolumeIndicator volumeIndicator=new VolumeIndicator(tradeEngine.series);
 
 
         ruleForSell = new IsMurrayRebound_v2_Rule(tradeEngine.series, IsMurrayRebound_v2_Rule.ReboundType.DOWN, murrayRange);
 //        ruleForSell = ruleForSell.and(new IsNotShiftyTrendRule(tradeEngine.series, IsNotShiftyTrendRule.TrendType.DOWN));
-//        ruleForSell = ruleForSell.and(new UnderIndicatorRule(volumeIndicator,300.0));
+//        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice,kcU,1));
 //        ruleForSell=ruleForSell.and(new IsZoloSignalRule(tradeEngine.series, IsZoloSignalRule.ReboundType.DOWN));
         ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY, 1));
 
@@ -45,7 +52,7 @@ public class MurrayEntry extends Strategy {
         ruleForBuy = new IsMurrayRebound_v2_Rule(tradeEngine.series, IsMurrayRebound_v2_Rule.ReboundType.UP, murrayRange);
 //        ruleForBuy = ruleForBuy.and(new IsNotShiftyTrendRule(tradeEngine.series, IsNotShiftyTrendRule.TrendType.UP));
 //        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(laguerreIndicator,0.1));
-//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(volumeIndicator,300.0));
+//        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice,kcL,1));
 //        ruleForBuy=ruleForBuy.and(new IsZoloSignalRule(tradeEngine.series, IsZoloSignalRule.ReboundType.UP));
         ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL, 1));
 
@@ -70,9 +77,7 @@ public class MurrayEntry extends Strategy {
         murrayChangeIndicator.subWindowIndex = 4;
         tradeEngine.log(murrayChangeIndicator);
 
-        KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 89);
-        KeltnerChannelUpperIndicator kcU = new KeltnerChannelUpperIndicator(kcM, 5.0, 89);
-        KeltnerChannelLowerIndicator kcL = new KeltnerChannelLowerIndicator(kcM, 5.0, 89);
+
 
 
         kcU.indicatorColor=Color.RED;
