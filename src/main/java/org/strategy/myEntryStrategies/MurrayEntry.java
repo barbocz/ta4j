@@ -59,9 +59,9 @@ public class MurrayEntry extends Strategy {
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);
 
-        DeMarkPivotPointIndicator deMarkPivotPointIndicator=new DeMarkPivotPointIndicator(tradeEngine.series, TimeLevel.DAY);
-        deMarkPivotPointIndicator.indicatorColor=Color.YELLOW;
-        tradeEngine.log(deMarkPivotPointIndicator);
+//        DeMarkPivotPointIndicator deMarkPivotPointIndicator=new DeMarkPivotPointIndicator(tradeEngine.series, TimeLevel.DAY);
+//        deMarkPivotPointIndicator.indicatorColor=Color.YELLOW;
+//        tradeEngine.log(deMarkPivotPointIndicator);
 
         MurrayMathFixedIndicator murrayMathIndicators[] = new MurrayMathFixedIndicator[13];
         for (int i = 0; i < 13; i++) {
