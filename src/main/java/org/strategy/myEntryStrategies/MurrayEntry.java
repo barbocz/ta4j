@@ -26,6 +26,7 @@ import java.time.ZonedDateTime;
 public class MurrayEntry extends Strategy {
 
     final Double murrayRange = 38.12;
+    LaguerreIndicator laguerreIndicator;
 
     public void init() {
 
@@ -33,7 +34,7 @@ public class MurrayEntry extends Strategy {
 //        ZoloIndicator zoloIndicatorDown = new ZoloIndicator(tradeEngine.series, false);
         MoneyFlowIndicator moneyFlowIndicator = new MoneyFlowIndicator(tradeEngine.series, 5);
         MurrayChangeIndicator murrayChangeIndicator = new MurrayChangeIndicator(tradeEngine.series, murrayRange);
-        LaguerreIndicator laguerreIndicator = new LaguerreIndicator(tradeEngine.series, 0.2);
+        laguerreIndicator = new LaguerreIndicator(tradeEngine.series, 0.2);
 
         KeltnerChannelMiddleIndicator kcM = new KeltnerChannelMiddleIndicator(tradeEngine.series, 89);
         KeltnerChannelUpperIndicator kcU = new KeltnerChannelUpperIndicator(kcM, 4.6, 89);
@@ -197,9 +198,9 @@ public class MurrayEntry extends Strategy {
         if (time.getHour() > 14 && time.getHour() < 17) return;
 //        if (time.getHour()==15 || (time.getHour()==16 && time.getMinute()<31)) return;
         if (time.getHour() > 22 || (time.getHour() == 0 && time.getMinute() < 30)) return;
-        if (ruleForSell.isSatisfied(time)) {
+        if (ruleForSell.isSatisfied(time) ) {
             tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.bid, time));
-        } else if (ruleForBuy.isSatisfied(time)) {
+        } else if (ruleForBuy.isSatisfied(time) ) {
             tradeEngine.onTradeEvent(Order.buy(orderAmount, tradeEngine.timeSeriesRepo.ask, time));
         }
     }

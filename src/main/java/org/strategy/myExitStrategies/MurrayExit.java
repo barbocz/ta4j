@@ -93,34 +93,34 @@ public class MurrayExit extends Strategy {
 //        }
         if (tradeEngine.openedOrders.size() > 0) {
 
-            List<Order> ordersToLose=new ArrayList<>();
-            for (Order order : tradeEngine.openedOrders) {
-                if (order.parentId!=0 || order.childOrders.size()>0) continue;
-                if (order.type == Order.Type.BUY) {
-                    if (order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.bid - 0.0004 > order.openPrice) {
-//                        if (tradeEngine.series.getCurrentIndex() - tradeEngine.series.getIndex(order.openTime) > 3)
-//                        order.stopLoss = order.openPrice + 0.0001;
-//                        else ordersToLose.add(order);
-                        order.stopLoss = tradeEngine.timeSeriesRepo.bid - 0.0003;
-                    }
-//                    if (tradeEngine.timeSeriesRepo.ask > order.takeProfitTarget) {
-//                        order.stopLoss = order.openPrice + 0.0001;
-////                        order.takeProfitTarget=order.takeProfitTarget + 0.0001;
+//            List<Order> ordersToLose=new ArrayList<>();
+//            for (Order order : tradeEngine.openedOrders) {
+//                if (order.parentId!=0 || order.childOrders.size()>0) continue;
+//                if (order.type == Order.Type.BUY) {
+//                    if (sellByMoneyFlow && order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.bid - 0.0004 > order.openPrice) {
+////                        if (tradeEngine.series.getCurrentIndex() - tradeEngine.series.getIndex(order.openTime) > 3)
+////                        order.stopLoss = order.openPrice + 0.0001;
+////                        else ordersToLose.add(order);
+//                        order.stopLoss = tradeEngine.timeSeriesRepo.bid - 0.0003;
 //                    }
-                } else {
-                    if (order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0004 < order.openPrice) {
-//                        if (tradeEngine.series.getCurrentIndex() - tradeEngine.series.getIndex(order.openTime) > 3)
-//                            order.stopLoss = order.openPrice - 0.0001;
-//                        else ordersToLose.add(order);
-                        order.stopLoss =tradeEngine.timeSeriesRepo.ask + 0.0003;
-                    }
-
-//                    if (tradeEngine.timeSeriesRepo.bid < order.takeProfitTarget) {
-//                        order.stopLoss = order.openPrice - 0.0001;
-////                        order.takeProfitTarget=order.takeProfitTarget - 0.0001;
+////                    if (tradeEngine.timeSeriesRepo.ask > order.takeProfitTarget) {
+////                        order.stopLoss = order.openPrice + 0.0001;
+//////                        order.takeProfitTarget=order.takeProfitTarget + 0.0001;
+////                    }
+//                } else {
+//                    if (buyByMoneyFlow && order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0004 < order.openPrice) {
+////                        if (tradeEngine.series.getCurrentIndex() - tradeEngine.series.getIndex(order.openTime) > 3)
+////                            order.stopLoss = order.openPrice - 0.0001;
+////                        else ordersToLose.add(order);
+//                        order.stopLoss =tradeEngine.timeSeriesRepo.ask + 0.0003;
 //                    }
-                }
-            }
+//
+////                    if (tradeEngine.timeSeriesRepo.bid < order.takeProfitTarget) {
+////                        order.stopLoss = order.openPrice - 0.0001;
+//////                        order.takeProfitTarget=order.takeProfitTarget - 0.0001;
+////                    }
+//                }
+//            }
 
 //            for (Order order: ordersToLose) {
 //                order.closedAmount = order.openedAmount ;
