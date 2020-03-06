@@ -97,9 +97,9 @@ public class OrderConditionRule extends AbstractRule {
         if (lastOrderIndexDifference > 0) {
             int currentIndex = tradeEngine.currentBarIndex;
 
-            if (tradeEngine.lastBuyOrder != null && tradeEngine.lastBuyOrder.getClosedProfit()<0.0 && currentIndex - tradeEngine.series.getIndex(tradeEngine.lastBuyOrder.closeTime) < lastOrderIndexDifference)
+            if (tradeEngine.lastBuyOrder != null &&  currentIndex - tradeEngine.series.getIndex(tradeEngine.lastBuyOrder.closeTime) < lastOrderIndexDifference)  //tradeEngine.lastBuyOrder.getClosedProfit()<0.0 &&
                 return false;
-            if (tradeEngine.lastSellOrder != null && tradeEngine.lastSellOrder.getClosedProfit()<0.0 && currentIndex - tradeEngine.series.getIndex(tradeEngine.lastSellOrder.closeTime) < lastOrderIndexDifference)
+            if (tradeEngine.lastSellOrder != null &&  currentIndex - tradeEngine.series.getIndex(tradeEngine.lastSellOrder.closeTime) < lastOrderIndexDifference)
                 return false;
 
         }

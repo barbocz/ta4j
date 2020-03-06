@@ -32,7 +32,10 @@ public class Test1 {
 
 //            TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,21,new ReboundEntry(),new MurrayMiracleExit_M30(),null, TradeEngine.LogLevel.BASIC);
 //        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new MurrayLevelChange_v2(),new MurrayLevelChangedExit_v2(),null, TradeEngine.LogLevel.TOTAL);
-        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new MurrayEntry(),new MurrayExit(),null, TradeEngine.LogLevel.BASIC);
+        TradeEngine.LogLevel logLevel;
+        if (backTestFileName=="backtestEUR.csv") logLevel=TradeEngine.LogLevel.BASIC;
+        else logLevel=TradeEngine.LogLevel.TOTAL;
+        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new MurrayTwoTenEntry(),new MurrayTwoTenExit(),null, logLevel);
         System.out.println(tradeEngine.series.getSymbol());
 //
         tradeEngine.initStrategy();

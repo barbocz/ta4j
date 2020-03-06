@@ -10,6 +10,8 @@ import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
 import org.ta4j.core.indicators.volume.MoneyFlowIndicator;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.strategy.Order.ExitType.EXITRULE;
 
@@ -91,23 +93,43 @@ public class MurrayExit extends Strategy {
 //        }
         if (tradeEngine.openedOrders.size() > 0) {
 
+            List<Order> ordersToLose=new ArrayList<>();
             for (Order order : tradeEngine.openedOrders) {
+                if (order.parentId!=0 || order.childOrders.size()>0) continue;
                 if (order.type == Order.Type.BUY) {
-                    if (order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.ask - 0.0004 > order.openPrice)
-                        order.stopLoss = order.openPrice;
+                    if (order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.bid - 0.0004 > order.openPrice) {
+//                        if (tradeEngine.series.getCurrentIndex() - tradeEngine.series.getIndex(order.openTime) > 3)
+//                        order.stopLoss = order.openPrice + 0.0001;
+//                        else ordersToLose.add(order);
+                        order.stopLoss = tradeEngine.timeSeriesRepo.bid - 0.0003;
+                    }
 //                    if (tradeEngine.timeSeriesRepo.ask > order.takeProfitTarget) {
 //                        order.stopLoss = order.openPrice + 0.0001;
 ////                        order.takeProfitTarget=order.takeProfitTarget + 0.0001;
 //                    }
                 } else {
-                    if (order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0004 < order.openPrice)
-                        order.stopLoss = order.openPrice;
+                    if (order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0004 < order.openPrice) {
+//                        if (tradeEngine.series.getCurrentIndex() - tradeEngine.series.getIndex(order.openTime) > 3)
+//                            order.stopLoss = order.openPrice - 0.0001;
+//                        else ordersToLose.add(order);
+                        order.stopLoss =tradeEngine.timeSeriesRepo.ask + 0.0003;
+                    }
+
 //                    if (tradeEngine.timeSeriesRepo.bid < order.takeProfitTarget) {
 //                        order.stopLoss = order.openPrice - 0.0001;
 ////                        order.takeProfitTarget=order.takeProfitTarget - 0.0001;
 //                    }
                 }
             }
+
+//            for (Order order: ordersToLose) {
+//                order.closedAmount = order.openedAmount ;
+//                if (order.type == Order.Type.BUY) order.closePrice = tradeEngine.timeSeriesRepo.bid; else order.closePrice = tradeEngine.timeSeriesRepo.ask;
+//                order.exitType = EXITRULE;
+//                tradeEngine.closeOrder(order);
+//            }
+
+
 
             ZonedDateTime time = tradeEngine.series.getCurrentTime();
             Order buyStartOrder = null, sellStartOrder = null;
@@ -137,6 +159,7 @@ public class MurrayExit extends Strategy {
 
                         buyStartOrder.phase = 2;
                         buyStartOrder.stopLossTarget = buyStartOrder.stopLossTarget - murrayRangeInPipForCorrection;
+                        buyStartOrder.stopLoss=buyStartOrder.openPrice - 0.003;
 
                         Order correctionOrder = Order.buy(orderAmount, tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime());
                         correctionOrder.stopLoss = buyStartOrder.stopLoss;
@@ -160,8 +183,10 @@ public class MurrayExit extends Strategy {
                     }
                     if (tradeEngine.timeSeriesRepo.bid < buyStartOrder.stopLossTarget && buyByMoneyFlow) {        // a vesztes trade  áttöri a következő kijelölt target sl szintet
                         buyStartOrder.phase++;
-                        if (buyStartOrder.phase > 2 && !buyByMoneyFlow) return;
+//                        if (buyStartOrder.phase > 2 && !buyByMoneyFlow) return;
                         buyStartOrder.stopLossTarget = buyStartOrder.stopLossTarget - murrayRangeInPipForCorrection;
+                        buyStartOrder.stopLoss=buyStartOrder.openPrice - 0.003;
+
                         Order correctionOrder = Order.buy(orderAmount, tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime());
 //                        correctionOrder.stopLoss = buyStartOrder.stopLoss;
                         correctionOrder.stopLoss = tradeEngine.timeSeriesRepo.ask - 0.0002;
@@ -190,6 +215,7 @@ public class MurrayExit extends Strategy {
 //                        System.out.println(sellStartOrder.phase + ". correctionLevel: " + sellStartOrder.stopLossTarget);
                         sellStartOrder.phase = 2;
                         sellStartOrder.stopLossTarget = sellStartOrder.stopLossTarget + murrayRangeInPipForCorrection;
+                        sellStartOrder.stopLoss=sellStartOrder.openPrice + 0.003;
 
                         Order correctionOrder = Order.sell(orderAmount, tradeEngine.timeSeriesRepo.bid, tradeEngine.series.getCurrentTime());
                         correctionOrder.stopLoss = sellStartOrder.stopLoss;
@@ -213,8 +239,9 @@ public class MurrayExit extends Strategy {
                     }
                     if (tradeEngine.timeSeriesRepo.ask > sellStartOrder.stopLossTarget && sellByMoneyFlow) {        // a vesztes trade  áttöri a következő kijelölt target sl szintet
                         sellStartOrder.phase++;
-                        if (sellStartOrder.phase > 2 && !sellByMoneyFlow) return;
+//                        if (sellStartOrder.phase > 2 && !sellByMoneyFlow) return;
                         sellStartOrder.stopLossTarget = sellStartOrder.stopLossTarget + murrayRangeInPipForCorrection;
+                        sellStartOrder.stopLoss=sellStartOrder.openPrice + 0.003;
                         Order correctionOrder = Order.sell(orderAmount, tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime());
 //                        correctionOrder.stopLoss = sellStartOrder.stopLoss;
                         correctionOrder.stopLoss = tradeEngine.timeSeriesRepo.ask + 0.0002;

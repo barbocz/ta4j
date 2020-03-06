@@ -951,10 +951,10 @@ public class LogStrategy {
 
             }
 
-            resultSet = statement.executeQuery("select TOTAL_PROFIT from STRATEGY where STRATEGY_ID="+strategyId);
-            if (resultSet.next()) totalProfit=resultSet.getDouble(1);
-            resultSet = statement.executeQuery("select 7*sum(CLOSE_AMOUNT)/100000 from STRATEGY_TRADE_HISTORY where STRATEGY_ID="+strategyId);
-            if (resultSet.next()) totalFee=resultSet.getDouble(1);
+//            resultSet = statement.executeQuery("select TOTAL_PROFIT from STRATEGY where STRATEGY_ID="+strategyId);
+//            if (resultSet.next()) totalProfit=resultSet.getDouble(1);
+//            resultSet = statement.executeQuery("select 7*sum(CLOSE_AMOUNT)/100000 from STRATEGY_TRADE_HISTORY where STRATEGY_ID="+strategyId);
+//            if (resultSet.next()) totalFee=resultSet.getDouble(1);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -964,8 +964,8 @@ public class LogStrategy {
         for (String month: profits.keySet()){
             System.out.println(month+":  "+profits.get(month));
         }
-        System.out.println("");
-        System.out.println("Gross profit: "+totalProfit+",  total fee: "+totalFee+"  net profit: "+(totalProfit-totalFee));
+//        System.out.println("");
+//        System.out.println("Gross profit: "+totalProfit+",  total fee: "+totalFee+"  net profit: "+(totalProfit-totalFee));
 
 
 

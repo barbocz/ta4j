@@ -46,7 +46,7 @@ public class MurrayEntry extends Strategy {
 //        ruleForSell = ruleForSell.and(new IsNotShiftyTrendRule(tradeEngine.series, IsNotShiftyTrendRule.TrendType.DOWN));
 //        ruleForSell = ruleForSell.and(new OverIndicatorRule(closePrice,kcU,1));
 //        ruleForSell=ruleForSell.and(new IsZoloSignalRule(tradeEngine.series, IsZoloSignalRule.ReboundType.DOWN));
-        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY, 1));
+        ruleForSell = ruleForSell.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_BUY, 5));
 
 
         ruleForBuy = new IsMurrayRebound_v2_Rule(tradeEngine.series, IsMurrayRebound_v2_Rule.ReboundType.UP, murrayRange);
@@ -54,7 +54,7 @@ public class MurrayEntry extends Strategy {
 //        ruleForBuy = ruleForBuy.and(new OverIndicatorRule(laguerreIndicator,0.1));
 //        ruleForBuy = ruleForBuy.and(new UnderIndicatorRule(closePrice,kcL,1));
 //        ruleForBuy=ruleForBuy.and(new IsZoloSignalRule(tradeEngine.series, IsZoloSignalRule.ReboundType.UP));
-        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL, 1));
+        ruleForBuy = ruleForBuy.and(new OrderConditionRule(tradeEngine, OrderConditionRule.AllowedOrderType.ONLY_SELL, 5));
 
         tradeEngine.log(ruleForSell);
         tradeEngine.log(ruleForBuy);

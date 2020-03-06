@@ -57,7 +57,7 @@ public class TradeEngine {
     StringBuffer balanceEquityLogContent = new StringBuffer("");
     List<StringBuffer> loggedExitPrices = new ArrayList<>();
 
-    public double initialBalance = 10000.0, initialAmount = 100000.0;
+    public double initialBalance = 10000.0, initialAmount = 100000.0, comissionPercent=0.00007;
     double balance, equity, lastBalanceMaximum, lastBalanceMinimum, balanceDrawDown = 0.0, equityMinimum, openMinimum = Double.MAX_VALUE, openMaximum = 0.0;
     int profitableTrade = 0, losingTrade = 0;
 
@@ -381,8 +381,9 @@ public class TradeEngine {
                 }
 
                 order.closeTime = series.getCurrentTime();
-                order.profit = order.getClosedProfit();
-                order.comission=order.closedAmount*0.00007;
+                order.comission=order.closedAmount*comissionPercent;
+                order.profit = order.getClosedProfit() - order.comission;
+
                 if (order.profit > 0.0) profitableTrade++;
                 if (order.profit < 0.0) losingTrade++;
 

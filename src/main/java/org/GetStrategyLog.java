@@ -185,7 +185,7 @@ public class GetStrategyLog {
 
             } catch (SQLException e) {
                 e.printStackTrace();
-            }ł
+            }
 
 
             fileWriter.close();

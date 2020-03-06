@@ -73,14 +73,14 @@ public class MurrayTwoTenExit extends Strategy {
 //        }
         for (Order order : tradeEngine.openedOrders) {
             if (order.type == Order.Type.BUY) {
-                if (order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.ask - 0.0005 > order.openPrice) order.stopLoss = order.openPrice;
+                if (order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.ask - 0.0005 > order.openPrice) order.stopLoss = order.openPrice+ 0.0001;
                 if (tradeEngine.timeSeriesRepo.ask>order.takeProfitTarget) {
                     order.stopLoss=order.takeProfitTarget - 0.0001;
                     order.takeProfitTarget=order.takeProfitTarget + 0.0001;
                 }
             }
             else {
-                if (order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0005 < order.openPrice)   order.stopLoss = order.openPrice;
+                if (order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0005 < order.openPrice)   order.stopLoss = order.openPrice- 0.0001;
                 if (tradeEngine.timeSeriesRepo.bid<order.takeProfitTarget) {
                     order.stopLoss=order.takeProfitTarget + 0.0001;
                     order.takeProfitTarget=order.takeProfitTarget - 0.0001;

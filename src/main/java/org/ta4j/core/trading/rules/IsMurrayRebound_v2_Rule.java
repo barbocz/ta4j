@@ -101,13 +101,13 @@ public class IsMurrayRebound_v2_Rule extends AbstractRule {
         boolean satisfied = false;
 
         if (reboundType == ReboundType.UP) {
-            if (highestMurrayChange.getValue(index).doubleValue() > 3.0) {
+            if (highestMurrayChange.getValue(index).doubleValue() > 3.4) {
                 satisfied = (laguerreIndicator.getValue(index).doubleValue() > laguerreIndicator.getValue(index - 1).doubleValue() ||
                         moneyFlowIndicator.getValue(index).doubleValue() > moneyFlowIndicator.getValue(index - 1).doubleValue()) &&
                         lowestLaguerre.getValue(index).doubleValue() < 0.1 && lowestMoneyFlow.getValue(index).doubleValue() < 15.0 ;
             }
         } else {
-            if (lowestMurrayChange.getValue(index).doubleValue() < -3.0) {
+            if (lowestMurrayChange.getValue(index).doubleValue() < -3.4) {
                 satisfied = (laguerreIndicator.getValue(index).doubleValue() < laguerreIndicator.getValue(index - 1).doubleValue() ||
                         moneyFlowIndicator.getValue(index).doubleValue() < moneyFlowIndicator.getValue(index - 1).doubleValue()) &&
                         highestLaguerre.getValue(index).doubleValue() > 0.9 && highestMoneyFlow.getValue(index).doubleValue() > 85.0  ;
