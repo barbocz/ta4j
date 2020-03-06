@@ -1,7 +1,11 @@
 package org;
 
 import javafx.collections.transformation.SortedList;
+import org.strategy.LogStrategy;
 import org.strategy.TimeSeriesRepo;
+import org.strategy.TradeEngine;
+import org.strategy.myEntryStrategies.MurrayEntry;
+import org.strategy.myExitStrategies.MurrayExit;
 import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.mt4Selection.MurrayChangeIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
@@ -24,6 +28,8 @@ public class Test2 {
         ZonedDateTime currentTime = ZonedDateTime.parse("2020.02.21 12:32", zdtFormatter.withZone(ZoneId.systemDefault()));
         System.out.println(currentTime);
         System.out.println(currentTime.getHour()+"--"+currentTime.getMinute());
+
+
 
     }
 
