@@ -85,7 +85,7 @@ public class TradeEngine {
     private final TradeCenter tradeCenter;
 
     JSONParser jsonParser = new JSONParser();
-    boolean openOrdersWereClosedBeforeMt4Trading=false;
+    boolean isMt4TradeOk =false;
     double mt4Profit=0.0;
     long mt4MagicNumber=0;
 
@@ -104,6 +104,7 @@ public class TradeEngine {
     }
 
     public LogLevel logLevel = LogLevel.NONE;
+    private LogLevel mt4TradeLogLevel;
     private StackTraceElement stackTraceElement;
 
     public TradeEngine(TimeSeriesRepo timeSeriesRepo, int period, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller, LogLevel logLevel) {
@@ -189,6 +190,11 @@ public class TradeEngine {
         lastBalanceMaximum = initialBalance;
         lastBalanceMinimum = initialBalance;
         equityMinimum = initialBalance;
+
+        if (!backtestMode) {
+            mt4TradeLogLevel=logLevel;
+            logLevel=LogLevel.NONE;         // a loggolást kikapcsoljuk és csak az onBarChangeEvent-ben kapcsoljuk vissza amikor megjött az utolsó aktuális bar
+        }
 //        setLogOn();
 
 
@@ -222,7 +228,7 @@ public class TradeEngine {
         }
         exitStrategy.onTradeEvent(order);
 
-        if (mt4TradeIsAllowed()) mt4OpenOrder(order);
+        if (isMt4TradeOk) mt4OpenOrder(order);
 
         if (logLevel != LogLevel.NONE) logStrategy.logTrade(true, order);
 
@@ -248,8 +254,9 @@ public class TradeEngine {
         currentBarIndex = series.getCurrentIndex();
 //        if (backtestMode) currentBarIndex = currentBarIndex - 1;
 
-        if (!openOrdersWereClosedBeforeMt4Trading && mt4TradeIsAllowed()) {                              // mielőtt megkezdenő az MT4 kereskedést bezárjuk a nyitott order-eket
-                openOrdersWereClosedBeforeMt4Trading=true;
+        if (!isMt4TradeOk && !backtestMode && timeSeriesRepo.lastMinuteBarTime!=null && ChronoUnit.MINUTES.between(timeSeriesRepo.lastMinuteBarTime, Instant.now()) < 2) {                              // mielőtt megkezdődne az MT4 kereskedés bezárjuk a nyitott order-eket
+                isMt4TradeOk =true;
+                logLevel=mt4TradeLogLevel;
                 for (Order order : openedOrders) {
                     try {
                         order.forcedClose=true;
@@ -262,11 +269,8 @@ public class TradeEngine {
                 openedOrders.removeIf((Order openedOrder) -> openedOrder.openedAmount == 0.0);
         }
 
-
         entryStrategy.onBarChangeEvent(timeFrame);
         exitStrategy.onBarChangeEvent(timeFrame);
-
-
 
         if (logLevel != LogLevel.NONE) logStrategy.onBarChangeEvent(timeFrame);
 
@@ -838,13 +842,7 @@ public class TradeEngine {
     }
 
 
-    boolean mt4TradeIsAllowed() {
 
-        if (!backtestMode && timeSeriesRepo.lastMinuteBarTime!=null && ChronoUnit.MINUTES.between(timeSeriesRepo.lastMinuteBarTime, Instant.now()) < 2)  {
-            return true;
-        }
-        else return false;
-    }
 
 }
 
