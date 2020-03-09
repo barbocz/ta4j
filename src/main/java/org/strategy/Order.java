@@ -29,6 +29,11 @@ public class Order implements Cloneable {
             public boolean isHold() {
                 return false;
             }
+
+            @Override
+            public String toString() {
+                return "BUY";
+            }
         },
         SELL {
             @Override
@@ -49,6 +54,11 @@ public class Order implements Cloneable {
             @Override
             public boolean isHold() {
                 return false;
+            }
+
+            @Override
+            public String toString() {
+                return "SELL";
             }
         },
         HOLD {
@@ -72,12 +82,18 @@ public class Order implements Cloneable {
             public boolean isHold() {
                 return true;
             }
+
+            @Override
+            public String toString() {
+                return "HOLD";
+            }
         };
 
         public abstract Type complementType();
         public abstract boolean isBuy();
         public abstract int mt4OrderType();
         public abstract boolean isHold();
+        public abstract String toString();
     }
 
     public enum Status {
@@ -100,10 +116,31 @@ public class Order implements Cloneable {
 
 
     public enum ExitType {
-        EXITRULE,
-        TAKEPROFIT,
-        STOPLOSS,
-        ENDSERIES
+        EXITRULE {
+            @Override
+            public String toString() {
+                return "EXIT";
+            }
+        },
+        TAKEPROFIT{
+            @Override
+            public String toString() {
+                return "TAKEPROFIT";
+            }
+        },
+        STOPLOSS{
+            @Override
+            public String toString() {
+                return "STOPLOSS";
+            }
+        },
+        ENDSERIES{
+            @Override
+            public String toString() {
+                return "ENDSERIES";
+            }
+        };
+        public abstract String toString();
     }
 
     public Type type;

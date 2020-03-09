@@ -1,8 +1,10 @@
 package org.strategy;
 
 import javafx.application.Platform;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import org.apache.log4j.MDC;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -18,6 +20,8 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -26,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import static org.strategy.Order.ExitType.ENDSERIES;
 
@@ -68,6 +73,9 @@ public class TradeEngine {
     public Order lastBuyOrder = null, lastSellOrder = null;
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
     DateTimeFormatter simpleDateFormatter = DateTimeFormatter.ofPattern("MM.dd HH:mm");
+    DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols(Locale.getDefault());
+    DecimalFormat decimalFormatWith2Dec, decimalFormatWith5Dec;
+
 
     public List<Order> openedOrders = new ArrayList<>(), closedOrders = new ArrayList<>();
     public int orderIndex = 0;
@@ -96,6 +104,7 @@ public class TradeEngine {
     }
 
     public LogLevel logLevel = LogLevel.NONE;
+    private StackTraceElement stackTraceElement;
 
     public TradeEngine(TimeSeriesRepo timeSeriesRepo, int period, Strategy entryStrategy, Strategy exitStrategy, TradeCenter controller, LogLevel logLevel) {
         this(timeSeriesRepo, period, entryStrategy, exitStrategy, controller);
@@ -114,6 +123,10 @@ public class TradeEngine {
         symbol = timeSeriesRepo.symbol;
         mt4MagicNumber=Math.abs(entryStrategy.getClass().getSimpleName().hashCode()+exitStrategy.getClass().getSimpleName().hashCode());
 
+        decimalFormatSymbols.setDecimalSeparator('.');
+        decimalFormatWith2Dec = new DecimalFormat("#.00", decimalFormatSymbols);
+        decimalFormatWith5Dec = new DecimalFormat("#.00000", decimalFormatSymbols);
+
         series = getTimeSeries(period);
 
         if (timeSeriesRepo.processType == TimeSeriesRepo.ProcessType.MT4) {  // MT4 feedelés esetén kinyitni a 6000 portot a trade-ek kezelésére, MT4 oldalon ehhez elindítani a TradeManager EA-t
@@ -124,8 +137,7 @@ public class TradeEngine {
         }
 
         System.out.print("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + period + " timeframe and " + symbol + " instrument, magic: "+mt4MagicNumber+" with ");
-        logger.info("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + period + " timeframe and " + symbol + " instrument, magic: "+mt4MagicNumber+" with ");
-    }
+  }
 
 
     public void initStrategy() throws Exception {
@@ -163,6 +175,15 @@ public class TradeEngine {
         if (logLevel != LogLevel.NONE) logStrategy.init();
         System.out.println(" with " + logStrategy.id + " logId.");
 
+        MDC.put("action","INIT");
+        MDC.put("orderId",0);
+        MDC.put("mt4TicketNumber",0);
+        MDC.put("strategyId",logStrategy.id);
+        MDC.put("source","init");
+
+        logger.info("TradeEngine started with " + entryStrategy.getClass().getSimpleName() + " / " + exitStrategy.getClass().getSimpleName() + " on " + period + " timeframe and " + symbol + " instrument, magic: "+mt4MagicNumber+" with ");
+
+
         balance = initialBalance;
         equity = initialBalance;
         lastBalanceMaximum = initialBalance;
@@ -190,6 +211,15 @@ public class TradeEngine {
         order.mt4MagicNumber = mt4MagicNumber;
         order.mt4Comment = entryStrategy.getClass().getSimpleName();
 
+        if (logLevel == LogLevel.TOTAL) {
+            stackTraceElement=Thread.currentThread().getStackTrace()[2];
+            MDC.put("orderId", orderIndex);
+            MDC.put("mt4TicketNumber", 0);
+            MDC.put("action", "OPEN");
+            MDC.put("source",Thread.currentThread().getStackTrace()[2].getMethodName()+":"+Thread.currentThread().getStackTrace()[2].getLineNumber());
+
+            logger.info("type:" + order.type.toString() + ", lot:" + order.openedAmount + ", price:" + order.openPrice + ", stopLoss:" + order.stopLoss + ", takProfit:" + order.takeProfit);
+        }
         exitStrategy.onTradeEvent(order);
 
         if (mt4TradeIsAllowed()) mt4OpenOrder(order);
@@ -288,7 +318,90 @@ public class TradeEngine {
 
     }
 
+    public void setExitPrice(Order order, double exitPrice) {
+
+        double prevTakeProfit=order.takeProfit;
+        double prevStopLoss=order.stopLoss;
+        if (order.type == Order.Type.BUY) {
+            if (exitPrice > timeSeriesRepo.bid) order.takeProfit=exitPrice;
+            else  if (exitPrice>order.stopLoss) order.stopLoss=exitPrice;         // csak jobb stoplosst fogadunk el
+
+        } else {
+            if (exitPrice < timeSeriesRepo.ask) order.takeProfit=exitPrice;
+            else  if (exitPrice<order.stopLoss) order.stopLoss=exitPrice;
+        }
+
+        if (logLevel == LogLevel.TOTAL) {
+
+            stackTraceElement=Thread.currentThread().getStackTrace()[2];
+            MDC.put("orderId", order.id);
+            MDC.put("mt4TicketNumber", order.mt4TicketNumber);
+            MDC.put("action", "BREAK");
+            MDC.put("source",Thread.currentThread().getStackTrace()[2].getMethodName()+":"+Thread.currentThread().getStackTrace()[2].getLineNumber());
+
+            MDC.put("source",Thread.currentThread().getStackTrace()[2].getMethodName()+":"+Thread.currentThread().getStackTrace()[2].getLineNumber());
+            if (prevTakeProfit!=order.takeProfit)  {
+                MDC.put("action", "TP_BREAK");
+                logger.info("takeProfit:" + decimalFormatWith5Dec.format(order.takeProfit) + ", prevTakeProfit:" + decimalFormatWith5Dec.format(prevTakeProfit));
+            }
+            else if (prevStopLoss!=order.stopLoss)  {
+                MDC.put("action", "SL_BREAK");
+                logger.info("stopLoss:" + decimalFormatWith5Dec.format(order.stopLoss) + ", prevStopLoss:" + decimalFormatWith5Dec.format(prevStopLoss));
+            }
+//            else {
+//                logger.info("incorrect exitPrice:" + decimalFormatWith5Dec.format(exitPrice));
+//            }
+
+
+        }
+    }
+
+    public void setTakeProfit(Order order, double takeProfit) {
+        double prevTakeProfit=order.takeProfit;
+        if (order.type == Order.Type.BUY) {
+            if (takeProfit > timeSeriesRepo.bid) order.takeProfit=takeProfit;
+
+        } else {
+            if (takeProfit < timeSeriesRepo.ask) order.takeProfit=takeProfit;
+
+        }
+
+        if (logLevel == LogLevel.TOTAL) {
+            MDC.put("action", "TAKEPROFIT");
+            MDC.put("orderId", order.id);
+            MDC.put("mt4TicketNumber", order.mt4TicketNumber);
+            logger.info("takeProfit:" + decimalFormatWith5Dec.format(order.takeProfit) + ", prevTakeProfit:" + decimalFormatWith5Dec.format(prevTakeProfit));
+        }
+
+
+    }
+
+    public void setStopLoss(Order order, double stopLoss) {
+        double prevStopLoss=order.stopLoss;
+        if (order.type == Order.Type.BUY) {
+            if (stopLoss < timeSeriesRepo.bid) order.stopLoss=stopLoss;
+
+        } else {
+            if (stopLoss > timeSeriesRepo.ask) order.stopLoss=stopLoss;
+
+        }
+
+        if (logLevel == LogLevel.TOTAL) {
+            stackTraceElement=Thread.currentThread().getStackTrace()[2];
+            MDC.put("orderId", order.id);
+            MDC.put("mt4TicketNumber", order.mt4TicketNumber);
+            MDC.put("action", "STOPLOSS");
+            MDC.put("source",Thread.currentThread().getStackTrace()[2].getMethodName()+":"+Thread.currentThread().getStackTrace()[2].getLineNumber());
+            logger.info("stopLoss:" + decimalFormatWith5Dec.format(order.stopLoss) + ", prevStopLoss:" + decimalFormatWith5Dec.format(prevStopLoss));
+        }
+
+
+    }
+
     public void setExitPrice(Order order, double exitPrice, ExitMode exitMode, boolean conservativeMode) {
+        double prevTakeProfit=order.takeProfit;
+        double prevStopLoss=order.stopLoss;
+
         boolean setTakeProfit = false, setStopLoss = false;
         if (order.type == Order.Type.BUY) {
             if (exitPrice > timeSeriesRepo.bid && (exitMode == ExitMode.TAKEPROFIT || exitMode == ExitMode.ANY)) {
@@ -320,6 +433,22 @@ public class TradeEngine {
 
         if (setTakeProfit) order.takeProfit = exitPrice;
         if (setStopLoss) order.stopLoss = exitPrice;
+
+        if (logLevel == LogLevel.TOTAL) {
+            stackTraceElement=Thread.currentThread().getStackTrace()[2];
+            MDC.put("orderId", order.id);
+            MDC.put("mt4TicketNumber", order.mt4TicketNumber);
+            MDC.put("action", "SLTPEXIT");
+            MDC.put("source",Thread.currentThread().getStackTrace()[2].getMethodName()+":"+Thread.currentThread().getStackTrace()[2].getLineNumber());
+            if (prevTakeProfit!=order.takeProfit)  {
+                MDC.put("action", "*TP_EXIT");
+                logger.info("takeProfit:" + decimalFormatWith5Dec.format(order.takeProfit) + ", prevTakeProfit:" + decimalFormatWith5Dec.format(prevTakeProfit));
+            }
+            else if (prevStopLoss!=order.stopLoss)  {
+                MDC.put("action", "*SL_EXIT");
+                logger.info("stopLoss:" + decimalFormatWith5Dec.format(order.stopLoss) + ", prevStopLoss:" + decimalFormatWith5Dec.format(prevStopLoss));
+            }
+        }
 
 
 //        if (order.id==23) System.out.println(simpleDateFormatter.format(series.getCurrentTime())+" tp: "+order.takeProfit+"  sl: "+order.stopLoss);
@@ -387,12 +516,23 @@ public class TradeEngine {
                 if (order.profit > 0.0) profitableTrade++;
                 if (order.profit < 0.0) losingTrade++;
 
+//                logger.info("type: "+ order.type.toString()+", lot: "+order.openedAmount+", price: "+order.openPrice+", stopLoss: "+order.stopLoss+", takProfit: "+ order.takeProfit);
 
                 if (order.mt4TicketNumber>0) {
                     mt4CloseOrder(order);
                     mt4Profit+=order.mt4Profit;
                 }
                 Order closedOrder = (Order) order.clone();
+
+                if (logLevel == LogLevel.TOTAL) {
+                    stackTraceElement=Thread.currentThread().getStackTrace()[2];
+                    MDC.put("orderId", order.id);
+                    MDC.put("mt4TicketNumber", order.mt4TicketNumber);
+                    MDC.put("action", "CLOSE");
+                    MDC.put("source",Thread.currentThread().getStackTrace()[2].getMethodName()+":"+Thread.currentThread().getStackTrace()[2].getLineNumber());
+                    logger.info("type:" + order.type.toString() + ", lot:" + order.closedAmount + ", closePrice:" + decimalFormatWith5Dec.format(order.closePrice) + ", stopLoss:" + decimalFormatWith5Dec.format(order.stopLoss) + ", takProfit:" + decimalFormatWith5Dec.format(order.takeProfit) + ", profit:" + decimalFormatWith2Dec.format(order.profit) + ", exitBy:" + order.exitType.toString());
+                }
+
 
                 if (logLevel != LogLevel.NONE) logStrategy.logTrade(false, closedOrder);
                 closedOrders.add(closedOrder);
@@ -622,7 +762,16 @@ public class TradeEngine {
         mt4Order.put("magicNumber", order.mt4MagicNumber);
         mt4Order.put("comment",order.mt4Comment);
 
-        logger.info("OUT: "+mt4Order.toJSONString());
+        if (logLevel == LogLevel.TOTAL) {
+            stackTraceElement=Thread.currentThread().getStackTrace()[2];
+            MDC.put("orderId", order.id);
+            MDC.put("mt4TicketNumber", order.mt4TicketNumber);
+            MDC.put("action", "->MT4 OPEN");
+            MDC.put("source","mt4OpenOrder");
+            logger.info("type:" + order.type.toString() + ", lot:" + decimalFormatWith2Dec.format(order.openedAmount / 100000) );
+        }
+
+//        logger.info("OUT: "+mt4Order.toJSONString());
 //        System.out.println(mt4Order.toJSONString());
 
         socket.send(mt4Order.toJSONString().getBytes(ZMQ.CHARSET), 0);
@@ -637,7 +786,12 @@ public class TradeEngine {
         else {
             String response = new String(reply, ZMQ.CHARSET);
             mt4SetResponseToOrder(response,order);
-            logger.info(response);
+            if (logLevel == LogLevel.TOTAL) {
+                MDC.put("action", "MT4-> OPEN");
+                logger.info(response);
+            }
+
+
 //            System.out.println("response " + response);
         }
 
@@ -650,11 +804,19 @@ public class TradeEngine {
         mt4Order.put("time",timeSeriesRepo.zdtFormatter.format(currentTradeTime));
         if (order.openedAmount==order.closedAmount)  mt4Order.put("action", "TRADE_CLOSE");
         else  mt4Order.put("action", "TRADE_CLOSE_PARTIAL");
-        mt4Order.put("lot", order.closedAmount / 1000000);
+        mt4Order.put("lot", order.closedAmount / 100000);
         mt4Order.put("ticketNumber",order.mt4TicketNumber);
 
 //        System.out.println(mt4Order.toJSONString());
-        logger.info("OUT: "+mt4Order.toJSONString());
+//        logger.info("OUT: "+mt4Order.toJSONString());
+
+        if (logLevel == LogLevel.TOTAL) {
+            MDC.put("orderId", order.id);
+            MDC.put("mt4TicketNumber", order.mt4TicketNumber);
+            MDC.put("action", "->MT4 CLOSE");
+            MDC.put("source","mt4CloseOrder");
+            logger.info("type:" + order.type.toString() + ", lot:" + decimalFormatWith2Dec.format(order.closedAmount / 100000) );
+        }
 
         socket.send(mt4Order.toJSONString().getBytes(ZMQ.CHARSET), 0);
 
@@ -666,7 +828,10 @@ public class TradeEngine {
         else {
             String response = new String(reply, ZMQ.CHARSET);
             mt4SetResponseToOrder(response,order);
-            logger.info(response);
+            if (logLevel == LogLevel.TOTAL) {
+                MDC.put("action", "MT4-> CLOSE");
+                logger.info(response);
+            }
 //            System.out.println("response " + response);
         }
 

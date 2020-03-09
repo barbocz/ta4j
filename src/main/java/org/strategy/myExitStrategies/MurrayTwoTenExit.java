@@ -32,11 +32,12 @@ public class MurrayTwoTenExit extends Strategy {
 
     public void onTradeEvent(Order order) {
         if (order.type == Order.Type.BUY) {
-            order.stopLoss = order.openPrice - stopLossInPip;
+            tradeEngine.setStopLoss(order,order.openPrice - stopLossInPip);
+
 //            order.takeProfit = order.openPrice + 3 * murrayRangeInPip-0.00016;
             order.takeProfitTarget = order.openPrice + 3 * murrayRangeInPip-0.00016;
         } else {
-            order.stopLoss = order.openPrice + stopLossInPip;
+            tradeEngine.setStopLoss(order,order.openPrice + stopLossInPip);
 //            order.takeProfit = order.openPrice - 3* murrayRangeInPip+0.00016;
             order.takeProfitTarget = order.openPrice - 3* murrayRangeInPip+0.00016;
         }
@@ -73,14 +74,14 @@ public class MurrayTwoTenExit extends Strategy {
 //        }
         for (Order order : tradeEngine.openedOrders) {
             if (order.type == Order.Type.BUY) {
-                if (order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.ask - 0.0005 > order.openPrice) order.stopLoss = order.openPrice+ 0.0001;
+                if (order.stopLoss < order.openPrice && tradeEngine.timeSeriesRepo.ask - 0.0005 > order.openPrice) tradeEngine.setStopLoss( order,order.openPrice+ 0.0001);
                 if (tradeEngine.timeSeriesRepo.ask>order.takeProfitTarget) {
 //                    order.stopLoss=order.takeProfitTarget - 0.0001;
                     order.takeProfitTarget=order.takeProfitTarget + 0.0001;
                 }
             }
             else {
-                if (order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0005 < order.openPrice)   order.stopLoss = order.openPrice- 0.0001;
+                if (order.stopLoss > order.openPrice && tradeEngine.timeSeriesRepo.ask + 0.0005 < order.openPrice)   tradeEngine.setStopLoss( order,order.stopLoss = order.openPrice- 0.0001);
                 if (tradeEngine.timeSeriesRepo.bid<order.takeProfitTarget) {
 //                    order.stopLoss=order.takeProfitTarget + 0.0001;
                     order.takeProfitTarget=order.takeProfitTarget - 0.0001;
@@ -118,9 +119,11 @@ public class MurrayTwoTenExit extends Strategy {
 //                order.takeProfit = keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() - 0.0001;
                 if (moneyFlowIndicator.getValue(tradeEngine.currentBarIndex-2).doubleValue() - moneyFlowIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()>50.0) {
                     if (tradeEngine.series.getCurrentIndex() - openIndex < 10)
-                        tradeEngine.setExitPrice(order, closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()-0.00038, TradeEngine.ExitMode.ANY, true);
+                        tradeEngine.setExitPrice(order,closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()-0.00038);
+//                        tradeEngine.setExitPrice(order, closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()-0.00038, TradeEngine.ExitMode.ANY, true);
                     else
-                        tradeEngine.setExitPrice(order, closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()-0.0002, TradeEngine.ExitMode.ANY, true);
+                        tradeEngine.setExitPrice(order,closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()-0.0002);
+//                        tradeEngine.setExitPrice(order, closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()-0.0002, TradeEngine.ExitMode.ANY, true);
                 }
             } else {
 //                if (tradeEngine.currentBarIndex > 10302) {
@@ -129,18 +132,22 @@ public class MurrayTwoTenExit extends Strategy {
 //                order.takeProfit = keltnerChannelMiddleIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() + 0.0001;
                 if (moneyFlowIndicator.getValue(tradeEngine.currentBarIndex).doubleValue() - moneyFlowIndicator.getValue(tradeEngine.currentBarIndex-2).doubleValue()>50.0) {
                     if (tradeEngine.series.getCurrentIndex() - openIndex < 10)
-                        tradeEngine.setExitPrice(order, closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()+0.00038, TradeEngine.ExitMode.ANY, true);
+                        tradeEngine.setExitPrice(order,closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()+0.00038);
+//                        tradeEngine.setExitPrice(order, closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()+0.00038, TradeEngine.ExitMode.ANY, true);
                     else
-                        tradeEngine.setExitPrice(order, closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()+0.0002, TradeEngine.ExitMode.ANY, true);
+                        tradeEngine.setExitPrice(order,closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()+0.0002);
+//                        tradeEngine.setExitPrice(order, closePriceIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()+0.0002, TradeEngine.ExitMode.ANY, true);
                 }
             }
 
             if (tradeEngine.series.getCurrentIndex() - openIndex > 14) {
 
                     if (order.type == Order.Type.BUY) {
-                        tradeEngine.setExitPrice(order, order.openPrice+0.0001, TradeEngine.ExitMode.ANY, true);
+                        tradeEngine.setExitPrice(order,order.openPrice+0.0001);
+//                        tradeEngine.setExitPrice(order, order.openPrice+0.0001, TradeEngine.ExitMode.ANY, true);
                     } else {
-                        tradeEngine.setExitPrice(order, order.openPrice-0.0001, TradeEngine.ExitMode.ANY, true);
+                        tradeEngine.setExitPrice(order,order.openPrice-0.0001);
+//                        tradeEngine.setExitPrice(order, order.openPrice-0.0001, TradeEngine.ExitMode.ANY, true);
                     }
 
             }
