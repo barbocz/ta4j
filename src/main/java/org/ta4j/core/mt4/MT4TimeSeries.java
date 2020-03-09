@@ -28,10 +28,7 @@ import org.ta4j.core.*;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -68,6 +65,7 @@ public class MT4TimeSeries implements TimeSeries {
     public ZonedDateTime nextBarDate = null, firstBarDate = null;
 
     String dateFormatPattern = "yyyy.MM.dd HH:mm";
+    public String metaTradeTimeZone="CET";
 //    DateTimeFormatter simpleDateFormatter = DateTimeFormatter.ofPattern("MM.dd HH:mm");
 //    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
     List<Bar> sortedBars = new ArrayList<>();
@@ -177,7 +175,9 @@ public class MT4TimeSeries implements TimeSeries {
         try {
 
 //            instantTime = dateFormatter.parse(priceData[1]).toInstant();
-            currentTime = ZonedDateTime.parse(priceData[1], zdtFormatter.withZone(ZoneId.systemDefault()));
+
+
+            currentTime = ZonedDateTime.parse(priceData[1], zdtFormatter.withZone(ZoneId.of(metaTradeTimeZone)));
 
 //            System.out.println("currentIndex " + currentIndex);
 
@@ -758,10 +758,13 @@ public class MT4TimeSeries implements TimeSeries {
             final int lastBarIndex = bars.size() - 1;
             ZonedDateTime seriesEndTime = bars.get(lastBarIndex).getEndTime();
             if (seriesEndTime.isAfter(bar.getEndTime())) {   // eredeti :   !bar.getEndTime().isAfter(seriesEndTime)
-                throw new IllegalArgumentException(
-                        String.format("Cannot add a bar with end time:%s that is <= to series end time: %s",
-                                bar.getEndTime(),
-                                seriesEndTime));
+                System.out.println(String.format("HIBA: Cannot add a bar with end time:%s that is <= to series end time: %s",  bar.getEndTime(), seriesEndTime));
+                return;
+//                throw new IllegalArgumentException(
+//                        String.format("Cannot add a bar with end time:%s that is <= to series end time: %s",
+//                                bar.getEndTime(),
+//                                seriesEndTime));
+
             }
             if (seriesEndTime.equals(bar.getEndTime())) return;
         }
@@ -1046,6 +1049,16 @@ public class MT4TimeSeries implements TimeSeries {
             SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormatPattern);
             DateTimeFormatter zdtFormatter = DateTimeFormatter.ofPattern(dateFormatPattern);
 
+            String metaTradeTimeZone="CET";
+            try (InputStream input = new FileInputStream("config.properties")) {
+                Properties prop = new Properties();
+                prop.load(input);
+                metaTradeTimeZone=prop.getProperty("mt4.timeZone");
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
 
             String date = "EMPTY";
             HashMap<ZonedDateTime, Bar> bars = new HashMap();
@@ -1055,8 +1068,8 @@ public class MT4TimeSeries implements TimeSeries {
             int firstRowIndex = 1;
             long dataPeriodSeconds = 60;  // defaultból 1 perces streamet várunk
             List<String[]> ohlcv = new ArrayList<>();
-            ZonedDateTime firstDate = ZonedDateTime.now(ZoneId.systemDefault());
-            ;
+            ZonedDateTime firstDate = ZonedDateTime.now(ZoneId.of(metaTradeTimeZone));
+
             Bar bar = null;
             ZonedDateTime zonedDateTime = null;
 
@@ -1082,8 +1095,8 @@ public class MT4TimeSeries implements TimeSeries {
                         throw new Exception("Incompatible data and timeFrame "+ohlcv.get(firstRowIndex + 1)[0]);
                     }
 //                    firstDate = dateFormatter.parse(ohlcv.get(firstRowIndex)[0]).toInstant();
-                    firstDate = ZonedDateTime.parse(ohlcv.get(firstRowIndex)[0], zdtFormatter.withZone(ZoneId.systemDefault()));
-                    lastDate = ZonedDateTime.parse(ohlcv.get(ohlcv.size() - 1)[0], zdtFormatter.withZone(ZoneId.systemDefault()));
+                    firstDate = ZonedDateTime.parse(ohlcv.get(firstRowIndex)[0], zdtFormatter.withZone(ZoneId.of(metaTradeTimeZone)));
+                    lastDate = ZonedDateTime.parse(ohlcv.get(ohlcv.size() - 1)[0], zdtFormatter.withZone(ZoneId.of(metaTradeTimeZone)));
                     openPrice = Double.parseDouble(ohlcv.get(firstRowIndex)[1]);
                 }
 
@@ -1117,7 +1130,7 @@ public class MT4TimeSeries implements TimeSeries {
                         }
 //                        Instant instantTime = dateFormatter.parse(priceData[0]).toInstant();
 
-                        ZonedDateTime time = ZonedDateTime.parse(priceData[0], zdtFormatter.withZone(ZoneId.systemDefault()));
+                        ZonedDateTime time = ZonedDateTime.parse(priceData[0], zdtFormatter.withZone(ZoneId.of(metaTradeTimeZone)));
 //                    if (priceData[0].equals("25.05.2018 20:59:00.000")) {
 //                        System.out.println("stop");
 //                    }
@@ -1199,7 +1212,7 @@ public class MT4TimeSeries implements TimeSeries {
 
                         List<String[]> cc = indicators.get(indicatorName);
                         for (String[] indicatorBuffers : indicators.get(indicatorName)) {
-                            zonedDateTime = dateFormatter.parse(indicatorBuffers[0]).toInstant().atZone(ZoneId.systemDefault());
+                            zonedDateTime = dateFormatter.parse(indicatorBuffers[0]).toInstant().atZone(ZoneId.of(metaTradeTimeZone));
                             DoubleNum[] bufferValues = new DoubleNum[bufferNumber];
                             for (int i = 0; i < bufferNumber; i++)
                                 bufferValues[i] = DoubleNum.valueOf(indicatorBuffers[i + 1]);
@@ -1242,6 +1255,7 @@ public class MT4TimeSeries implements TimeSeries {
             series.doAggregate = doAggregate;
             series.barDuration = barDuration;
             series.symbol = symbol;
+            series.metaTradeTimeZone=metaTradeTimeZone;
             if (series.getEndIndex() > -1) series.seriesEndTime = series.getBar(series.getEndIndex()).getEndTime();
             initValues(); // reinitialize values for next series
             return series;

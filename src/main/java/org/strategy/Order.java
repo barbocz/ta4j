@@ -160,7 +160,7 @@ public class Order implements Cloneable {
     public int mt4TicketNumber=0,mt4NewTicketNumber=0;
     public long mt4MagicNumber=0;
     public ZonedDateTime mt4OpenTime,mt4NewOpenTime,mt4CloseTime;
-    public double mt4OpenPrice=0.0,mt4NewOpenPrice=0.0,mt4ClosePrice=0.0,mt4Profit=0.0;
+    public double mt4OpenPrice=0.0,mt4NewOpenPrice=0.0,mt4ClosePrice=0.0,mt4Profit=0.0,mt4Lot=0.0;
     public String mt4Comment="";
 
     public boolean forcedClose=false;   // ha true akkor nem hívódik meg az Exit stratégia onExitEvent-je, hanem simán bezárásra kerül

@@ -15,6 +15,9 @@ import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.mt4Selection.MurrayChangeIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -22,25 +25,28 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Properties;
 
 public class Test2 {
 
 
     public static void main(String[] args) throws Exception {
-        Logger logger = LogManager.getLogger(Test2.class);
-        MDC.put("strategyId",10000);
+        DateTimeFormatter zdtFormatter,zdtFormatterWithSeconds;
+        String metaTradeTimeZone="CET";
+        try (InputStream input = new FileInputStream("config.properties")) {
+            Properties prop = new Properties();
+            prop.load(input);
+            metaTradeTimeZone=prop.getProperty("mt4.timeZone");
+            System.out.println(metaTradeTimeZone);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
 
-        MDC.put("action","ACTION");
-        MDC.put("orderId","10");
-        MDC.put("mt4TicketNumber","123456");
-        MDC.put("strategyId",20000);
-//        ThreadContext.put("strategyId", "10000");
-//        ThreadContext.put("mt4TicketNumber", "123456");
-        logger.debug("elso");
-//        ThreadContext.put("strategyId", "20000");
+        zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault());
+        zdtFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss").withZone(ZoneId.of(metaTradeTimeZone));
 
-        logger.debug("masodik");
-
+        System.out.println(ZonedDateTime.parse("2020.03.09 12:25", zdtFormatter));
+        System.out.println(ZonedDateTime.parse("2020.03.09 12:25", zdtFormatter).toInstant());
 
 
     }

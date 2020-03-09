@@ -20,7 +20,9 @@ import org.ta4j.core.trading.rules.OverIndicatorRule;
 import org.ta4j.core.trading.rules.UnderIndicatorRule;
 
 import java.awt.*;
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 
 public class MurrayEntry extends Strategy {
@@ -195,10 +197,10 @@ public class MurrayEntry extends Strategy {
     public void onBarChangeEvent(int timeFrame) throws Exception {
         ZonedDateTime time = tradeEngine.series.getCurrentTime();
 
-        if (time.getHour() > 14 && time.getHour() < 17) return;
+//        if (time.getHour() > 14 && time.getHour() < 17) return;
 //        if (time.getHour()==15 || (time.getHour()==16 && time.getMinute()<31)) return;
         if (time.getHour() > 22 || (time.getHour() == 0 && time.getMinute() < 30)) return;
-        if (ruleForSell.isSatisfied(time) ) {
+        if (ruleForSell.isSatisfied(time) || (time.getDayOfMonth()==9 &&  time.getHour() == 16 && time.getMinute() ==9)) {
             tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.bid, time));
         } else if (ruleForBuy.isSatisfied(time) ) {
             tradeEngine.onTradeEvent(Order.buy(orderAmount, tradeEngine.timeSeriesRepo.ask, time));

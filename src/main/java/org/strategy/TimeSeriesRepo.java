@@ -45,7 +45,7 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
     //    public List<String> onEventStrategies = new ArrayList<>();
     List<Integer> timeFramesForBarchange = new ArrayList<>();
 
-    Instant lastMinuteBarTime = null;
+    public Instant lastMinuteBarTime = null;
 
     public enum ProcessType {
         MT4,
