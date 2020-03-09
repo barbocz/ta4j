@@ -17,11 +17,22 @@ public class ZoloIndicator extends CachedIndicator<Num> {
     LowPriceIndicator low;
     VolumeIndicator vol;
 
-    private final int  UpPeriod      = 8;       // Up Period
+    private  int  UpPeriod      = 8;       // Up Period
     private final int  UpMode        = 1;        // Up Mode (1: /Period, 2: /Bars)
-    private final int  DownPeriod    = 8;       // Down Period
+    private  int  DownPeriod    = 8;       // Down Period
     private final int  DownMode      = 1;        // Down Mode (1: /Period, 2: /Bars)
     private final boolean isUp;  // alapból az up-ot adja
+
+
+    public ZoloIndicator(TimeSeries series,int upPeriod,int downPeriod,boolean isUp) {
+        super(series);
+        this.isUp=isUp;
+        UpPeriod=upPeriod;
+        DownPeriod=downPeriod;
+        high=new HighPriceIndicator(series);
+        low=new LowPriceIndicator(series);
+        vol=new VolumeIndicator(series);
+    }
 
     public ZoloIndicator(TimeSeries series,boolean isUp) {
         super(series);
@@ -40,7 +51,10 @@ public class ZoloIndicator extends CachedIndicator<Num> {
         double sumUp=0.0,sumDown=0.0;
         for (int i = index ; i > index - UpPeriod ; i--) {
             if( high.getValue(i).isGreaterThan(high.getValue(i-1)) && low.getValue(i).isGreaterThanOrEqual(low.getValue(i-1))) sumUp+=vol.getValue(i).doubleValue();
-            else if( high.getValue(i).isLessThanOrEqual(high.getValue(i-1)) && low.getValue(i).isLessThan(low.getValue(i-1))) sumDown+=vol.getValue(i).doubleValue();
+        }
+
+        for (int i = index ; i > index - DownPeriod ; i--) {
+            if( high.getValue(i).isLessThanOrEqual(high.getValue(i-1)) && low.getValue(i).isLessThan(low.getValue(i-1))) sumDown+=vol.getValue(i).doubleValue();
         }
 
         if (isUp) return numOf(sumUp/UpPeriod);

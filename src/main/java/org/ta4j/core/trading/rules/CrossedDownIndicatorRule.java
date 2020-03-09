@@ -113,6 +113,8 @@ public class CrossedDownIndicatorRule extends AbstractRule {
     @Override
     public boolean isSatisfied(int index) {
 
+
+
         boolean satisfied=false;
         if (shift==0 || index-shift<0) {
             satisfied = cross.getValue(index);
@@ -135,6 +137,10 @@ public class CrossedDownIndicatorRule extends AbstractRule {
         boolean satisfied = false;
 
         int indexForFirst = timeSeriesRepo.getIndex(time, periodForFirst);
+
+//        if (indexForFirst>21959){
+//            System.out.println("");
+//        }
         int indexForSecond = timeSeriesRepo.getIndex(time, periodForSecond);
         if (indexForFirst<0 || indexForSecond<0) return false;
         Num valueForSecond=second.getValue(indexForSecond);

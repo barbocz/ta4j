@@ -521,7 +521,7 @@ public class TradeEngine {
 
                 order.closeTime = series.getCurrentTime();
                 order.comission=order.closedAmount*comissionPercent;
-                order.profit = order.getClosedProfit() - order.comission;
+
 
                 if (order.profit > 0.0) profitableTrade++;
                 if (order.profit < 0.0) losingTrade++;
@@ -532,6 +532,7 @@ public class TradeEngine {
                     mt4CloseOrder(order);
                     mt4Profit+=order.mt4Profit;
                 }
+                order.profit = order.getClosedProfit() - order.comission;
                 Order closedOrder = (Order) order.clone();
 
                 if (logLevel == LogLevel.TOTAL) {

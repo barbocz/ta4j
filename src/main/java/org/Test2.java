@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -42,11 +43,14 @@ public class Test2 {
             ex.printStackTrace();
         }
 
-        zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault());
+        zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.of(metaTradeTimeZone));
         zdtFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss").withZone(ZoneId.of(metaTradeTimeZone));
 
-        System.out.println(ZonedDateTime.parse("2020.03.09 12:25", zdtFormatter));
-        System.out.println(ZonedDateTime.parse("2020.03.09 12:25", zdtFormatter).toInstant());
+        System.out.println(ZonedDateTime.parse("2020.03.09 17:35", zdtFormatter));
+        System.out.println(ZonedDateTime.parse("2020.03.09 17:35", zdtFormatter).toInstant());
+        System.out.println(Instant.now());
+
+        System.out.println(ChronoUnit.MINUTES.between(ZonedDateTime.parse("2020.03.09 17:35", zdtFormatter).toInstant(), Instant.now()));
 
 
     }
