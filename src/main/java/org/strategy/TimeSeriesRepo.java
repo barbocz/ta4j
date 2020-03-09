@@ -92,7 +92,7 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
                             ZMQ.Socket TimeSeriesSocket = context.createSocket(SocketType.REP);
                             TimeSeriesSocket.bind("tcp://*:" + portNumber);
 
-                            int requestedBarNumber = 5000;
+                            int requestedBarNumber = 2000;
 
                             while (!Thread.currentThread().isInterrupted()) {
                                 byte[] reply = TimeSeriesSocket.recv(0);
