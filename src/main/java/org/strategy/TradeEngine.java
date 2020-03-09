@@ -730,7 +730,7 @@ public class TradeEngine {
 
                         if (mt4Order.get("ticketNumber") != null)
                             order.mt4TicketNumber = ((Long) mt4Order.get("ticketNumber")).intValue() ;
-                        if (mt4Order.get("openPrice") != null) order.mt4OpenPrice = (double) mt4Order.get("openPrice");
+                        if (mt4Order.get("openPrice") != null) order.openPrice = (double) mt4Order.get("openPrice");
                         if (mt4Order.get("openTime") != null)
                             order.mt4OpenTime = (ZonedDateTime) ZonedDateTime.parse((String) mt4Order.get("openTime"), timeSeriesRepo.zdtFormatterWithSeconds);
 
@@ -807,8 +807,7 @@ public class TradeEngine {
                 if (response.indexOf("error")>-1)  logger.info(response);
                 else {
                     MDC.put("mt4TicketNumber", order.mt4TicketNumber);
-                    logger.info("type:" + order.type.toString() + ", lot:" + order.mt4Lot + ", price:" + decimalFormatWith5Dec.format(order.mt4NewOpenPrice) + ", stopLoss:" + decimalFormatWith5Dec.format(order.stopLoss) + ", takProfit:" + decimalFormatWith5Dec.format(order.takeProfit));
-                    order.openPrice=order.mt4NewOpenPrice;
+                    logger.info("type:" + order.type.toString() + ", lot:" + order.mt4Lot + ", price:" + decimalFormatWith5Dec.format(order.openPrice) + ", stopLoss:" + decimalFormatWith5Dec.format(order.stopLoss) + ", takProfit:" + decimalFormatWith5Dec.format(order.takeProfit));
                 }
 
             }

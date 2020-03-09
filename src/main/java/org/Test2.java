@@ -43,7 +43,7 @@ public class Test2 {
             ex.printStackTrace();
         }
 
-        zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.of(metaTradeTimeZone));
+        zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault());
         zdtFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss").withZone(ZoneId.of(metaTradeTimeZone));
 
         System.out.println(ZonedDateTime.parse("2020.03.09 17:35", zdtFormatter));
