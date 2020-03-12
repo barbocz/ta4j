@@ -29,7 +29,7 @@ public class ParabolicSarExit extends Strategy  {
     }
 
     @Override
-    public void onExitEvent(Order order){
+    public void onBeforeCloseOrder(Order order){
          order.closedAmount = order.openedAmount;
 
     }

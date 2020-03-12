@@ -119,7 +119,7 @@ public class MurrayRefinedExit extends Strategy {
     }
 
     @Override
-    public void onExitEvent(Order order) {
+    public void onBeforeCloseOrder(Order order) {
         if (order.phase == 0 && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 0.0) {
             order.closedAmount = order.openedAmount / 2.0;
             order.phase = 1;

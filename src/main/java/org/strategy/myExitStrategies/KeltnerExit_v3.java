@@ -67,7 +67,7 @@ public class KeltnerExit_v3 extends Strategy {
     }
 
     @Override
-    public void onExitEvent(Order order) {
+    public void onBeforeCloseOrder(Order order) {
          order.closedAmount = order.openedAmount;
 
     }

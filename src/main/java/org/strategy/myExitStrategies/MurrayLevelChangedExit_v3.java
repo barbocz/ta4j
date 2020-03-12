@@ -73,7 +73,7 @@ public class MurrayLevelChangedExit_v3 extends Strategy {
     }
 
     @Override
-    public void onExitEvent(Order order) {
+    public void onBeforeCloseOrder(Order order) {
         //if (order.phase==0 && ((order.type == Order.Type.BUY && order.takeProfit>order.openPrice) || (order.type == Order.Type.SELL && order.takeProfit<order.openPrice))) {
         if (order.phase==0 && order.exitType==Order.ExitType.TAKEPROFIT && order.profit>0.0) {
             order.closedAmount = order.openedAmount / 2.0;

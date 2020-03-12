@@ -18,11 +18,11 @@ public abstract class Strategy {
     public abstract void onBarChangeEvent(int timeFrame) throws Exception;
     public abstract void onOneMinuteDataEvent();
 
-    public void onExitEvent(Order order){
+    public void onBeforeCloseOrder(Order order){
         order.closedAmount=order.openedAmount;
     }
 
-
+    public void onAfterCloseOrder(Order order){}
 
 
 }

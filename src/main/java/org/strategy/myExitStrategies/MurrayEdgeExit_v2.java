@@ -181,7 +181,7 @@ public class MurrayEdgeExit_v2 extends Strategy {
     }
 
     @Override
-    public void onExitEvent(Order order) {
+    public void onBeforeCloseOrder(Order order) {
         if (order.exitType == Order.ExitType.TAKEPROFIT) {
             if (order.doubleParameters.get("lastTP") != null && order.takeProfit == order.doubleParameters.get("lastTP")) {
                 order.closedAmount = 0.0;

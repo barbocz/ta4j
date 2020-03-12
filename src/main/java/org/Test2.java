@@ -44,10 +44,12 @@ public class Test2 {
         }
 
         zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault());
-        zdtFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss").withZone(ZoneId.of(metaTradeTimeZone));
+        zdtFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.of(metaTradeTimeZone));
 
-        System.out.println(ZonedDateTime.parse("2020.03.09 17:35", zdtFormatter));
-        System.out.println(ZonedDateTime.parse("2020.03.09 17:35", zdtFormatter).toInstant());
+        System.out.println(ZonedDateTime.parse("2020.03.09 22:35", zdtFormatter));
+        System.out.println(ZonedDateTime.parse("2020.03.09 22:35", zdtFormatterWithSeconds));
+        System.out.println(ZonedDateTime.parse("2020.03.09 22:35", zdtFormatter).toInstant());
+        System.out.println(ZonedDateTime.parse("2020.03.09 22:35", zdtFormatterWithSeconds).toInstant());
         System.out.println(Instant.now());
 
         System.out.println(ChronoUnit.MINUTES.between(ZonedDateTime.parse("2020.03.09 17:35", zdtFormatter).toInstant(), Instant.now()));

@@ -1,5 +1,6 @@
 package org.strategy.myExitStrategies;
 
+import org.apache.log4j.MDC;
 import org.strategy.Order;
 import org.strategy.Strategy;
 import org.strategy.TradeEngine;
@@ -61,6 +62,9 @@ public class MurrayExit extends Strategy {
                 else firstTakeProfitLevelIndex++;
                 order.takeProfitTarget = murrayLevels[firstTakeProfitLevelIndex] - 0.00007;
 
+                tradeEngine.logOrderActivity(order,"TARGET","stopLossTarget: "+order.stopLossTarget+", takeProfitTarget: "+order.takeProfitTarget);
+
+
 
             } else {
                 tradeEngine.setStopLoss(order,order.openPrice + 0.003);
@@ -74,6 +78,7 @@ public class MurrayExit extends Strategy {
                 firstTakeProfitLevelIndex = getMurrayRange(order.openPrice - 0.0002);
                 if (firstTakeProfitLevelIndex < 0) firstTakeProfitLevelIndex = 0;
                 order.takeProfitTarget = murrayLevels[firstTakeProfitLevelIndex] + 0.00007;
+                tradeEngine.logOrderActivity(order,"TARGET","stopLossTarget: "+order.stopLossTarget+", takeProfitTarget: "+order.takeProfitTarget);
             }
 
         } else if (order.phase == 1) {                      // profit állapot
@@ -116,7 +121,7 @@ public class MurrayExit extends Strategy {
 //                        buyStartOrder.stopLoss = buyStartOrder.openPrice + 0.00007;
                         tradeEngine.setStopLoss(buyStartOrder,buyStartOrder.openPrice + 0.00007);
                         buyStartOrder.takeProfitTarget = buyStartOrder.takeProfitTarget + murrayRangeInPip;
-
+                        tradeEngine.logOrderActivity(buyStartOrder,"TARGET","stopLossTarget: "+buyStartOrder.stopLossTarget+", takeProfitTarget: "+buyStartOrder.takeProfitTarget);
 
                     }
                     if (tradeEngine.timeSeriesRepo.bid < buyStartOrder.stopLossTarget) {        // a kezdő trade mínuszba megy és áttöri első kijelölt target sl szintet
@@ -133,6 +138,7 @@ public class MurrayExit extends Strategy {
                         buyStartOrder.childOrders.add(correctionOrder);
                         tradeEngine.onTradeEvent(correctionOrder);
                         buyStartOrder.takeProfitTarget = getBreakLevel(buyStartOrder.type);
+                        tradeEngine.logOrderActivity(buyStartOrder,"TARGET","stopLossTarget: "+buyStartOrder.stopLossTarget+", takeProfitTarget: "+buyStartOrder.takeProfitTarget);
 
                     }
                 } else if (buyStartOrder.phase == 1) {
@@ -140,6 +146,7 @@ public class MurrayExit extends Strategy {
 //                        buyStartOrder.stopLoss = buyStartOrder.takeProfitTarget - murrayRangeInPip;
                         tradeEngine.setStopLoss(buyStartOrder,buyStartOrder.takeProfitTarget - murrayRangeInPip);
                         buyStartOrder.takeProfitTarget = buyStartOrder.takeProfitTarget + murrayRangeInPip;
+                        tradeEngine.logOrderActivity(buyStartOrder,"TARGET","stopLossTarget: "+buyStartOrder.stopLossTarget+", takeProfitTarget: "+buyStartOrder.takeProfitTarget);
                     }
                 } else {                                                                // korrekció management
                     if (tradeEngine.timeSeriesRepo.ask > buyStartOrder.takeProfitTarget) {        // a vesztes trade  eléri az első kijelölt korreciós target tp szintet
@@ -165,6 +172,7 @@ public class MurrayExit extends Strategy {
                         buyStartOrder.childOrders.add(correctionOrder);
                         tradeEngine.onTradeEvent(correctionOrder);
                         buyStartOrder.takeProfitTarget = getBreakLevel(buyStartOrder.type);
+                        tradeEngine.logOrderActivity(buyStartOrder,"TARGET","stopLossTarget: "+buyStartOrder.stopLossTarget+", takeProfitTarget: "+buyStartOrder.takeProfitTarget);
 //                        if ( buyStartOrder.phase>3) System.out.println(time+"    "+buyStartOrder.phase + ". correctionLevel: " +"  loss: "+buyStartOrder.getCurrentProfit(tradeEngine.timeSeriesRepo.bid)+ "  ttp: "+getBreakLevel(buyStartOrder.type));
                     }
                 }
@@ -180,7 +188,7 @@ public class MurrayExit extends Strategy {
 //                        sellStartOrder.stopLoss = sellStartOrder.openPrice - 0.00007;
                         tradeEngine.setStopLoss(sellStartOrder,sellStartOrder.openPrice - 0.00007);
                         sellStartOrder.takeProfitTarget = sellStartOrder.takeProfitTarget - murrayRangeInPip;
-
+                        tradeEngine.logOrderActivity(sellStartOrder,"TARGET","stopLossTarget: "+sellStartOrder.stopLossTarget+", takeProfitTarget: "+sellStartOrder.takeProfitTarget);
 
                     }
                     if (tradeEngine.timeSeriesRepo.ask > sellStartOrder.stopLossTarget) {        // a kezdő trade mínuszba megy és áttöri első kijelölt target sl szintet
@@ -197,6 +205,7 @@ public class MurrayExit extends Strategy {
                         sellStartOrder.childOrders.add(correctionOrder);
                         tradeEngine.onTradeEvent(correctionOrder);
                         sellStartOrder.takeProfitTarget = getBreakLevel(sellStartOrder.type);
+                        tradeEngine.logOrderActivity(sellStartOrder,"TARGET","stopLossTarget: "+sellStartOrder.stopLossTarget+", takeProfitTarget: "+sellStartOrder.takeProfitTarget);
 
                     }
                 } else if (sellStartOrder.phase == 1) {
@@ -204,6 +213,7 @@ public class MurrayExit extends Strategy {
 //                        sellStartOrder.stopLoss = sellStartOrder.takeProfitTarget + murrayRangeInPip;
                         tradeEngine.setStopLoss(sellStartOrder,sellStartOrder.takeProfitTarget + murrayRangeInPip);
                         sellStartOrder.takeProfitTarget = sellStartOrder.takeProfitTarget - murrayRangeInPip;
+                        tradeEngine.logOrderActivity(sellStartOrder,"TARGET","stopLossTarget: "+sellStartOrder.stopLossTarget+", takeProfitTarget: "+sellStartOrder.takeProfitTarget);
                     }
                 } else {                                                                // korrekció management
                     if (tradeEngine.timeSeriesRepo.ask < sellStartOrder.takeProfitTarget) {        // a vesztes trade  eléri az első kijelölt korreciós target tp szintet
@@ -228,6 +238,7 @@ public class MurrayExit extends Strategy {
                         sellStartOrder.childOrders.add(correctionOrder);
                         tradeEngine.onTradeEvent(correctionOrder);
                         sellStartOrder.takeProfitTarget = getBreakLevel(sellStartOrder.type);
+                        tradeEngine.logOrderActivity(sellStartOrder,"TARGET","stopLossTarget: "+sellStartOrder.stopLossTarget+", takeProfitTarget: "+sellStartOrder.takeProfitTarget);
 //                        if ( sellStartOrder.phase>3) System.out.println(time+"    "+sellStartOrder.phase + ". correctionLevel: " +"  loss: "+sellStartOrder.getCurrentProfit(tradeEngine.timeSeriesRepo.ask)+"  ttp: "+getBreakLevel(sellStartOrder.type));
                     }
                 }
@@ -240,7 +251,7 @@ public class MurrayExit extends Strategy {
     }
 
     @Override
-    public void onExitEvent(Order order) {
+    public void onBeforeCloseOrder(Order order) {
         order.closedAmount = order.openedAmount;
 
     }

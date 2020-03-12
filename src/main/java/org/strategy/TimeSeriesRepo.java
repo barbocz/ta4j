@@ -63,16 +63,16 @@ public class TimeSeriesRepo implements TimeSeriesRepository {
 
 //        if (processType == ProcessType.MT4) System.out.println("processType:");
 
-//        try (InputStream input = new FileInputStream("config.properties")) {
-//            Properties prop = new Properties();
-//            prop.load(input);
-//            metaTradeTimeZone=prop.getProperty("mt4.timeZone");
-//        } catch (IOException ex) {
-//            ex.printStackTrace();
-//        }
+        try (InputStream input = new FileInputStream("config.properties")) {
+            Properties prop = new Properties();
+            prop.load(input);
+            metaTradeTimeZone=prop.getProperty("mt4.timeZone");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
 
-        zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.systemDefault());
-        zdtFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss").withZone(ZoneId.systemDefault());
+        zdtFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm").withZone(ZoneId.of(metaTradeTimeZone));
+        zdtFormatterWithSeconds = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss").withZone(ZoneId.of(metaTradeTimeZone));
 
 //        coreSeries = new MT4TimeSeries.SeriesBuilder().
 //                withName(symbol).

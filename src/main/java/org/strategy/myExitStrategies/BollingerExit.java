@@ -82,7 +82,7 @@ public class BollingerExit extends Strategy {
     }
 
     @Override
-    public void onExitEvent(Order order) {
+    public void onBeforeCloseOrder(Order order) {
      order.closedAmount = order.openedAmount;
 
     }

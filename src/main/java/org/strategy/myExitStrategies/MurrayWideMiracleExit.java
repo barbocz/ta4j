@@ -47,7 +47,7 @@ public class MurrayWideMiracleExit extends Strategy {
     }
 
     @Override
-    public void onExitEvent(Order order) {
+    public void onBeforeCloseOrder(Order order) {
         boolean closerStoplossNeeded=false;
         if (order.exitType == Order.ExitType.TAKEPROFIT && order.getCurrentProfit(tradeEngine.timeSeriesRepo.bid) > 1.0) {
             if (order.phase == 0) order.closedAmount = order.openedAmount / 20.0;

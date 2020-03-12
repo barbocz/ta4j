@@ -35,7 +35,7 @@ public class Test1 {
         TradeEngine.LogLevel logLevel;
         if (backTestFileName=="backtestEUR.csv") logLevel=TradeEngine.LogLevel.BASIC;
         else logLevel=TradeEngine.LogLevel.TOTAL;
-        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,20,new ZoloEntry(),new ZoloExit(),null, TradeEngine.LogLevel.TOTAL);
+        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new MurrayTwoTenEntry(),new MurrayTwoTenExit_v2(),null, logLevel);
         System.out.println(tradeEngine.series.getSymbol());
 //
         tradeEngine.initStrategy();

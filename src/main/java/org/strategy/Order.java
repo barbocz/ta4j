@@ -164,6 +164,7 @@ public class Order implements Cloneable {
     public String mt4Comment="";
 
     public boolean forcedClose=false;   // ha true akkor nem hívódik meg az Exit stratégia onExitEvent-je, hanem simán bezárásra kerül
+    public boolean keepItsProfit=false; // ha true, akkor a TradeEngine nem enged olyan takeProfit-ot vagy stopLoss-t ami rosszabb eredményhez vezethet az előzőleg beállítottnál
 
     public HashMap<String,Double> doubleParameters=new HashMap<>();
     public HashMap<String,LinkedList<Double>> hashMapParameters=new HashMap<>();
