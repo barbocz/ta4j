@@ -32,7 +32,7 @@ public class MurrayTwoTenEntry extends Strategy {
     int lastTradeIndex=0;
 
     LaguerreIndicator laguerreIndicator;
-//    Rule orderConditionRule;
+    //    Rule orderConditionRule;
     int m1CurrentBarIndex=0;
 
     public void init() {
@@ -94,7 +94,7 @@ public class MurrayTwoTenEntry extends Strategy {
 
 
 
-            if (tradeEngine.timeSeriesRepo.ask>sellLimit ) {
+        if (tradeEngine.timeSeriesRepo.ask>sellLimit ) {
             if (tradeEngine.backtestMode) {
                 order=Order.sell(orderAmount,  tradeEngine.timeSeriesRepo.bid, tradeEngine.series.getCurrentTime());
                 tradeEngine.onTradeEvent(order);
@@ -173,7 +173,7 @@ public class MurrayTwoTenEntry extends Strategy {
 
 
     public void onOneMinuteDataEvent() {
-        m1CurrentBarIndex = tradeEngine.timeSeriesRepo.getIndex(tradeEngine.series.getCurrentTime(), 1);
+
     }
 
 

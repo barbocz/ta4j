@@ -23,7 +23,7 @@ public class MurrayTwoTenExit_v2 extends Strategy {
     Double murrayLevels[] = new Double[13];
     double murrayHeight = 0.0, atrValue = 0.0, atrBasedMurrayBias = 0.0,atrBasedTrailingBias = 0.0;
     MoneyFlowIndicator moneyFlowIndicator;
-    ClosePriceIndicator closePriceIndicator;
+
     KeltnerChannelMiddleIndicator keltnerChannelMiddleIndicator;
     ATRIndicator atrIndicator;
     boolean isOverBought=false,isOverSold=false;
@@ -33,7 +33,7 @@ public class MurrayTwoTenExit_v2 extends Strategy {
         for (int i = 0; i < 13; i++)
             murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i, murrayRange);
         moneyFlowIndicator = new MoneyFlowIndicator(tradeEngine.series, 3);
-        closePriceIndicator = new ClosePriceIndicator(tradeEngine.series);
+
         keltnerChannelMiddleIndicator = new KeltnerChannelMiddleIndicator(tradeEngine.series, 89);
         atrIndicator = new ATRIndicator(tradeEngine.series, 14);
     }
