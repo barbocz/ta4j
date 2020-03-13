@@ -32,10 +32,10 @@ public class MurrayTwoTenExit_v2 extends Strategy {
 
         for (int i = 0; i < 13; i++)
             murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i, murrayRange);
-        moneyFlowIndicator = new MoneyFlowIndicator(tradeEngine.series, 3);
+        moneyFlowIndicator = new MoneyFlowIndicator(tradeEngine.series, 4);
 
         keltnerChannelMiddleIndicator = new KeltnerChannelMiddleIndicator(tradeEngine.series, 89);
-        atrIndicator = new ATRIndicator(tradeEngine.series, 14);
+        atrIndicator = new ATRIndicator(tradeEngine.series, 10);
     }
 
 
@@ -53,11 +53,12 @@ public class MurrayTwoTenExit_v2 extends Strategy {
 
 
 ////            order.takeProfit = order.openPrice + 3 * murrayRangeInPip-0.00016;
-//            order.takeProfitTarget = getNextMurrayLevel(order.openPrice+atrValue,-1.0*atrBasedBias,true);
+            order.takeProfitTarget = order.openPrice+atrValue;
 //            tradeEngine.logOrderActivity(order,"TARGET","takeProfitTarget: "+order.takeProfitTarget);
         } else {
             tradeEngine.setStopLoss(order, murrayLevels[12] + 0.0005);
             tradeEngine.setTakeProfit(order, getNextMurrayLevel(order.openPrice - atrValue, atrBasedMurrayBias, false));
+            order.takeProfitTarget = order.openPrice- atrValue;
 //            tradeEngine.setStopLoss(order,order.openPrice + stopLossInPip);
 ////            order.takeProfit = order.openPrice - 3* murrayRangeInPip+0.00016;
 //            order.takeProfitTarget = getNextMurrayLevel(order.openPrice-atrValue,atrBasedBias,true);
@@ -71,11 +72,22 @@ public class MurrayTwoTenExit_v2 extends Strategy {
     public void onTickEvent() throws Exception {
 
         for (Order order : tradeEngine.openedOrders) {
-            if (order.type == Order.Type.BUY && isOverBought && tradeEngine.timeSeriesRepo.bid - atrBasedTrailingBias>order.openPrice) {
+            if (order.type == Order.Type.BUY){
+                if(isOverBought && tradeEngine.timeSeriesRepo.bid - atrBasedTrailingBias>order.openPrice)
                 tradeEngine.setStopLoss(order, tradeEngine.timeSeriesRepo.bid - atrBasedTrailingBias);
-            } else  if (order.type == Order.Type.SELL && isOverSold && tradeEngine.timeSeriesRepo.ask + atrBasedTrailingBias<order.openPrice) {
+                if (tradeEngine.timeSeriesRepo.bid>order.takeProfitTarget) {
+                    tradeEngine.setStopLoss(order,order.openPrice+0.0001 );
+                    order.takeProfitTarget=Double.MAX_VALUE;
+                }
+            } else  if (order.type == Order.Type.SELL) {
+                if ( isOverSold && tradeEngine.timeSeriesRepo.ask + atrBasedTrailingBias<order.openPrice)
                 tradeEngine.setStopLoss(order, tradeEngine.timeSeriesRepo.ask + atrBasedTrailingBias);
+                if (tradeEngine.timeSeriesRepo.ask<order.takeProfitTarget) {
+                    tradeEngine.setStopLoss(order,order.openPrice-0.0001 );
+                    order.takeProfitTarget=0.0;
+                }
             }
+
         }
 
 

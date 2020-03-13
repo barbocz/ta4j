@@ -89,14 +89,14 @@ public class MurrayTwoTenEntry extends Strategy {
 
 
         if (tradeEngine.timeSeriesRepo.ask > sellLimit) {
-            tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.bid, tradeEngine.series.getCurrentTime()));
+            tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime()));
 
             lastTradedSellLimit = sellLimit;
             sellLimit = Double.MAX_VALUE;
             lastTradeIndex = tradeEngine.currentBarIndex;
         }
         if (tradeEngine.timeSeriesRepo.bid < buyLimit) {
-            tradeEngine.onTradeEvent(Order.buy(orderAmount, tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime()));
+            tradeEngine.onTradeEvent(Order.buy(orderAmount, tradeEngine.timeSeriesRepo.bid, tradeEngine.series.getCurrentTime()));
             lastTradedBuyLimit = buyLimit;
             buyLimit = 0.0;
             lastTradeIndex = tradeEngine.currentBarIndex;
@@ -115,10 +115,10 @@ public class MurrayTwoTenEntry extends Strategy {
         for (int i = 0; i < 13; i++)
             murrayLevels[i] = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
         double murrayHeight = murrayLevels[1] - murrayLevels[0];
-        if (murrayLevels[2] != murrayMathIndicators[2].getValue(tradeEngine.currentBarIndex - 1).doubleValue() && tradeEngine.currentBarIndex - lastTradeIndex > 8) {
+        if (murrayLevels[2] != murrayMathIndicators[2].getValue(tradeEngine.currentBarIndex - 1).doubleValue() && tradeEngine.currentBarIndex - lastTradeIndex > 32) {
             lastTradedBuyLimit = 0.0;
         }
-        if (murrayLevels[10] != murrayMathIndicators[10].getValue(tradeEngine.currentBarIndex - 1).doubleValue() && tradeEngine.currentBarIndex - lastTradeIndex > 8) {
+        if (murrayLevels[10] != murrayMathIndicators[10].getValue(tradeEngine.currentBarIndex - 1).doubleValue() && tradeEngine.currentBarIndex - lastTradeIndex > 32) {
             lastTradedSellLimit = 0.0;
         }
 
