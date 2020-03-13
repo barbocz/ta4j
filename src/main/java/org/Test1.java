@@ -20,8 +20,10 @@ public class Test1 {
 //        backTestFileName="2019nov.csv";
 //        backTestFileName="2018nov.csv";
 //        backTestFileName="2019aug.csv";
+//        backTestFileName="backTestAUD.csv";
 //        backTestFileName="backtestGBP.csv";
         backTestFileName="backtestEUR.csv";
+
 
         TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD",backTestFileName,"yyyy.MM.dd HH:mm");
 //        TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD","smallBb"yyyy.MM.dd HH:mm");

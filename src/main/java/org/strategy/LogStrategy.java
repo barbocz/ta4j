@@ -759,9 +759,15 @@ public class LogStrategy {
 
 //            System.out.println("lastClosePrice: "+lastClosePrice);
             while (rs.next()) {
-                fileContent.append(rs.getInt("ORDER_ID")).append("|").append(rs.getString("TYPE")).append("|").append(rs.getString("OPEN_TIME")).
-                        append("|").append(rs.getDouble("OPEN_PRICE")).append("|").append(rs.getString("CLOSE_TIME")).append("|").append(rs.getDouble("CLOSE_PRICE")).append("|").append(rs.getDouble("CLOSE_AMOUNT")).append("\r\n");
+                if (tradeEngine.isMt4TradeOk) {
+                    fileContent.append(rs.getInt("MT4_MAGIC_NUMBER")).append("|").append(rs.getString("TYPE")).append("|").append(rs.getString("OPEN_TIME")).
+                            append("|").append(rs.getDouble("OPEN_PRICE")).append("|").append(rs.getString("CLOSE_TIME")).append("|").append(rs.getDouble("CLOSE_PRICE")).append("|").append(rs.getDouble("CLOSE_AMOUNT")).append("\r\n");
 
+                } else {
+
+                    fileContent.append(rs.getInt("ORDER_ID")).append("|").append(rs.getString("TYPE")).append("|").append(rs.getString("OPEN_TIME")).
+                            append("|").append(rs.getDouble("OPEN_PRICE")).append("|").append(rs.getString("CLOSE_TIME")).append("|").append(rs.getDouble("CLOSE_PRICE")).append("|").append(rs.getDouble("CLOSE_AMOUNT")).append("\r\n");
+                }
                 if ( rs.getDouble("CLOSE_AMOUNT") == 0.0) {
                     if (rs.getString("TYPE").equals("BUY"))
                         openProfit += (lastClosePrice - rs.getDouble("OPEN_PRICE")) * rs.getDouble("OPEN_AMOUNT");

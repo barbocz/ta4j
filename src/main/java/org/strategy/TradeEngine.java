@@ -226,7 +226,7 @@ public class TradeEngine {
             MDC.put("action", "OPEN");
             MDC.put("source", Thread.currentThread().getStackTrace()[2].getMethodName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber());
             if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));
-            logger.info("type:" + order.type.toString() + ", lot:" + order.openedAmount + ", open:" + order.openPrice + ", sl:" + order.stopLoss + ", tp:" + order.takeProfit + ", oTime:" + simpleDateFormatter.format(order.openTime));
+            logger.info("symbol: "+symbol+", type:" + order.type.toString() + ", lot:" + order.openedAmount + ", open:" + order.openPrice + ", sl:" + order.stopLoss + ", tp:" + order.takeProfit + ", oTime:" + simpleDateFormatter.format(order.openTime));
         }
         exitStrategy.onTradeEvent(order);
 
@@ -416,7 +416,7 @@ public class TradeEngine {
             MDC.put("mt4TicketNumber", order.mt4TicketNumber);
             MDC.put("action", "STOPLOSS");
             MDC.put("source", Thread.currentThread().getStackTrace()[2].getMethodName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber());
-            if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));
+            if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime())); else MDC.put("backTestTime","");
             logger.info("sl:" + decimalFormatWith5Dec.format(order.stopLoss) + ", prevSl:" + decimalFormatWith5Dec.format(prevStopLoss));
         }
 
@@ -468,11 +468,11 @@ public class TradeEngine {
             MDC.put("source", Thread.currentThread().getStackTrace()[2].getMethodName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber());
             if (prevTakeProfit != order.takeProfit) {
                 MDC.put("action", "*TP_EXIT");
-                if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));
+                if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));else MDC.put("backTestTime","");
                 logger.info("tp:" + decimalFormatWith5Dec.format(order.takeProfit) + ", prevTp:" + decimalFormatWith5Dec.format(prevTakeProfit));
             } else if (prevStopLoss != order.stopLoss) {
                 MDC.put("action", "*SL_EXIT");
-                if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));
+                if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));else MDC.put("backTestTime","");
                 logger.info("sl:" + decimalFormatWith5Dec.format(order.stopLoss) + ", prevSl:" + decimalFormatWith5Dec.format(prevStopLoss));
             }
         }
@@ -559,8 +559,8 @@ public class TradeEngine {
                     MDC.put("mt4TicketNumber", order.mt4TicketNumber);
                     MDC.put("action", "CLOSE");
                     MDC.put("source", Thread.currentThread().getStackTrace()[2].getMethodName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber());
-                    if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));
-                    logger.info("type:" + order.type.toString() + ", lot:" + order.closedAmount + ", open:" + decimalFormatWith5Dec.format(order.openPrice) + ", close:" + decimalFormatWith5Dec.format(order.closePrice) + ", sl:" + decimalFormatWith5Dec.format(order.stopLoss) + ", tp:" + decimalFormatWith5Dec.format(order.takeProfit) + ", profit:" + decimalFormatWith2Dec.format(order.profit) + ", exitBy:" + order.exitType.toString() + ", cTime:" + simpleDateFormatter.format(order.closeTime));
+                    if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));else MDC.put("backTestTime","");
+                    logger.info("symbol: "+symbol+", type:" + order.type.toString() + ", lot:" + order.closedAmount + ", open:" + decimalFormatWith5Dec.format(order.openPrice) + ", close:" + decimalFormatWith5Dec.format(order.closePrice) + ", sl:" + decimalFormatWith5Dec.format(order.stopLoss) + ", tp:" + decimalFormatWith5Dec.format(order.takeProfit) + ", profit:" + decimalFormatWith2Dec.format(order.profit) + ", exitBy:" + order.exitType.toString() + ", cTime:" + simpleDateFormatter.format(order.closeTime));
 
                 }
 
@@ -608,7 +608,7 @@ public class TradeEngine {
                     MDC.put("mt4TicketNumber", order.mt4TicketNumber);
                     MDC.put("action", "OPENLEFT");
                     MDC.put("source", Thread.currentThread().getStackTrace()[1].getMethodName() + ":" + Thread.currentThread().getStackTrace()[1].getLineNumber());
-                    if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));
+                    if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));else MDC.put("backTestTime","");
                     logger.info("parentId:" + parentId + "type:" + order.type.toString() + ", lot:" + order.openedAmount + ", open:" + decimalFormatWith5Dec.format(order.openPrice) + ", sl:" + decimalFormatWith5Dec.format(order.stopLoss) + ", tp:" + decimalFormatWith5Dec.format(order.takeProfit));
                 }
                 exitStrategy.onAfterCloseOrder(order);
@@ -904,7 +904,7 @@ public class TradeEngine {
             MDC.put("mt4TicketNumber", order.mt4MagicNumber);
             MDC.put("action", action);
             MDC.put("source", Thread.currentThread().getStackTrace()[2].getMethodName() + ":" + Thread.currentThread().getStackTrace()[2].getLineNumber());
-            if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));
+            if (backtestMode) MDC.put("backTestTime", simpleDateFormatter.format(series.getCurrentTime()));else MDC.put("backTestTime","");
             logger.info(message);
         }
 

@@ -173,7 +173,7 @@ public class MurrayTwoTenEntry extends Strategy {
 
 
     public void onOneMinuteDataEvent() {
-
+        m1CurrentBarIndex = tradeEngine.timeSeriesRepo.getIndex(tradeEngine.series.getCurrentTime(), 1);
     }
 
 

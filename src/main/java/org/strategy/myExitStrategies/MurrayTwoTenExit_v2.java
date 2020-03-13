@@ -162,8 +162,8 @@ public class MurrayTwoTenExit_v2 extends Strategy {
 //            System.out.println("");
 //        }
         atrValue = atrIndicator.getValue(tradeEngine.currentBarIndex).doubleValue();
-        atrBasedMurrayBias = atrValue / 5.0;
-        atrBasedTrailingBias= atrValue * 0.8;
+        atrBasedMurrayBias = atrValue / 10.0;
+        atrBasedTrailingBias= atrValue * 0.9;
 
         if (moneyFlowIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()==100.0) isOverBought=true; else isOverBought=false;
         if (moneyFlowIndicator.getValue(tradeEngine.currentBarIndex).doubleValue()==0.0) isOverSold=true; else isOverSold=false;
