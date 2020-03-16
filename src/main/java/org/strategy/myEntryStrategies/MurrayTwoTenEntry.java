@@ -22,16 +22,20 @@ public class MurrayTwoTenEntry extends Strategy {
     double buyLimit = 0.0, sellLimit = Double.MAX_VALUE, lastTradedBuyLimit = 0.0, lastTradedSellLimit = 0.0;
     KeltnerChannelUpperIndicator kcU;
     KeltnerChannelLowerIndicator kcL;
-    MoneyFlowIndicator moneyFlowIndicator;
+    MoneyFlowIndicator moneyFlowIndicator,moneyFlowIndicatorSlower;
     ClosePriceIndicator closePriceIndicator;
     VolumeIndicator volumeIndicator;
     int lastTradeIndex = 0;
+    double signalLevel=0; // 0: Hold, 3: Strong sell, -3 Strong buy
 
     LaguerreIndicator laguerreIndicator;
     //    Rule orderConditionRule;
     int m1CurrentBarIndex = 0;
 
     public void init() {
+
+
+
 
         for (int i = 0; i < 13; i++)
             murrayMathIndicators[i] = new MurrayMathFixedIndicator(tradeEngine.series, i, murrayRange);
@@ -42,6 +46,7 @@ public class MurrayTwoTenEntry extends Strategy {
         volumeIndicator = new VolumeIndicator(tradeEngine.series);
 
         laguerreIndicator = new LaguerreIndicator(tradeEngine.series, 0.13);
+
 
         kcU.indicatorColor = Color.RED;
         tradeEngine.log(kcU);
@@ -112,6 +117,8 @@ public class MurrayTwoTenEntry extends Strategy {
 //        if (time.getHour()==15 || (time.getHour()==16 && time.getMinute()<31)) return;
         if (time.getHour() > 22 || (time.getHour() == 0 && time.getMinute() < 30)) return;
 
+
+
         for (int i = 0; i < 13; i++)
             murrayLevels[i] = murrayMathIndicators[i].getValue(tradeEngine.currentBarIndex).doubleValue();
         double murrayHeight = murrayLevels[1] - murrayLevels[0];
@@ -138,14 +145,14 @@ public class MurrayTwoTenEntry extends Strategy {
 //        if (sellLimit == lastTradedSellLimit) sellLimit = Double.MAX_VALUE; //&&
 
         buyLimit = murrayLevels[2] + 0.00008;
-        if (kcL.getValue(tradeEngine.currentBarIndex).doubleValue() < buyLimit || buyLimit == lastTradedBuyLimit)
+        if (kcL.getValue(tradeEngine.currentBarIndex).doubleValue() < buyLimit || buyLimit == lastTradedBuyLimit )
             buyLimit = 0.0; // &&
 
 
         sellLimit = murrayLevels[10] - 0.00008;
 
 
-        if (kcU.getValue(tradeEngine.currentBarIndex).doubleValue() > sellLimit || sellLimit == lastTradedSellLimit)
+        if (kcU.getValue(tradeEngine.currentBarIndex).doubleValue() > sellLimit || sellLimit == lastTradedSellLimit )
             sellLimit = Double.MAX_VALUE; //&&
 
     }

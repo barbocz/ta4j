@@ -819,6 +819,7 @@ public class TradeEngine {
             MDC.put("mt4TicketNumber", order.mt4TicketNumber);
             MDC.put("action", "->MT4 OPEN");
             MDC.put("source", "mt4OpenOrder");
+           MDC.put("backTestTime","");
             logger.info("type:" + order.type.toString() + ", lot:" + decimalFormatWith2Dec.format(order.openedAmount / 100000));
         }
 
@@ -871,6 +872,7 @@ public class TradeEngine {
             MDC.put("mt4TicketNumber", order.mt4TicketNumber);
             MDC.put("action", "->MT4 CLOSE");
             MDC.put("source", "mt4CloseOrder");
+             MDC.put("backTestTime","");
             logger.info("type:" + order.type.toString() + ", lot:" + decimalFormatWith2Dec.format(order.closedAmount / 100000));
         }
 
