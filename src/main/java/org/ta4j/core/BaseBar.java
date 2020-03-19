@@ -29,7 +29,9 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Function;
 import org.strategy.Order;
 
@@ -60,6 +62,16 @@ public class BaseBar implements Bar {
     private Num volume;
     /** Trade count */
     private int trades = 0;
+
+    public List<Double> parameters=new ArrayList<>();
+
+    @Override
+    public void addParameter(double value){
+        if (!parameters.contains(value))  parameters.add(value);
+    }
+
+    @Override
+    public List<Double> getParameters(){ return parameters;}
 
     private Order.Type orderType= Order.Type.HOLD;
 

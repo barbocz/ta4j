@@ -49,7 +49,7 @@ public class MurrayTwoTenExit_v2 extends Strategy {
 //                System.out.println("");
 //            }
 
-            tradeEngine.setStopLoss(order, murrayLevels[0] - 0.00025);
+            tradeEngine.setStopLoss(order, murrayLevels[0] - 0.00035);
 
             tradeEngine.setTakeProfit(order, getNextMurrayLevel(order.openPrice + atrValue, -1.0 * atrBasedMurrayBias, true));
 //                order.stopLoss = order.openPrice - 0.003;//0.00264;

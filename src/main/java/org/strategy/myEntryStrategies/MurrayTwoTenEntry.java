@@ -22,7 +22,7 @@ public class MurrayTwoTenEntry extends Strategy {
     double buyLimit = 0.0, sellLimit = Double.MAX_VALUE, lastTradedBuyLimit = 0.0, lastTradedSellLimit = 0.0;
     KeltnerChannelUpperIndicator kcU;
     KeltnerChannelLowerIndicator kcL;
-    MoneyFlowIndicator moneyFlowIndicator,moneyFlowIndicatorSlower;
+    MoneyFlowIndicator moneyFlowIndicator,moneyFlowIndicatorSlower,moneyFlowIndicatorFast;
     ClosePriceIndicator closePriceIndicator;
     VolumeIndicator volumeIndicator;
     int lastTradeIndex = 0;
@@ -31,6 +31,8 @@ public class MurrayTwoTenEntry extends Strategy {
     LaguerreIndicator laguerreIndicator;
     //    Rule orderConditionRule;
     int m1CurrentBarIndex = 0;
+
+    boolean moneyFlowIndicatorFastBuyOk=false,moneyFlowIndicatorFastSellOk=false;
 
     public void init() {
 
@@ -44,8 +46,10 @@ public class MurrayTwoTenEntry extends Strategy {
         kcL = new KeltnerChannelLowerIndicator(kcM, 2.6, 89);
 //        closePriceIndicator = new ClosePriceIndicator(tradeEngine.series);
         volumeIndicator = new VolumeIndicator(tradeEngine.series);
+        moneyFlowIndicatorFast=new MoneyFlowIndicator(tradeEngine.timeSeriesRepo.getTimeSeries(1), 3);
 
         laguerreIndicator = new LaguerreIndicator(tradeEngine.series, 0.13);
+
 
 
         kcU.indicatorColor = Color.RED;
@@ -74,12 +78,22 @@ public class MurrayTwoTenEntry extends Strategy {
 //        tradeEngine.log(zoloIndicatorDown);
 
 
-        laguerreIndicator.subWindowIndex = 5;
-        tradeEngine.log(laguerreIndicator);
+//        laguerreIndicator.subWindowIndex = 4;
+//        tradeEngine.log(laguerreIndicator);
 
-        moneyFlowIndicator = new MoneyFlowIndicator(tradeEngine.series, 3);
-        moneyFlowIndicator.subWindowIndex = 6;
+        MoneyFlowIndicator moneyFlowIndicatorFast = new MoneyFlowIndicator(tradeEngine.series, 3);
+        moneyFlowIndicatorFast.subWindowIndex = 4;
+        moneyFlowIndicatorFast.indicatorColor=Color.GREEN;
+        tradeEngine.log(moneyFlowIndicatorFast);
+
+        moneyFlowIndicator = new MoneyFlowIndicator(tradeEngine.series, 5);
+        moneyFlowIndicator.subWindowIndex = 5;
         tradeEngine.log(moneyFlowIndicator);
+
+        moneyFlowIndicatorSlower = new MoneyFlowIndicator(tradeEngine.series, 8);
+        moneyFlowIndicatorSlower.subWindowIndex = 6;
+        moneyFlowIndicatorSlower.indicatorColor=Color.RED;
+        tradeEngine.log(moneyFlowIndicatorSlower);
 
 
     }
@@ -93,14 +107,14 @@ public class MurrayTwoTenEntry extends Strategy {
         Order order = null;
 
 
-        if (tradeEngine.timeSeriesRepo.ask > sellLimit) {
+        if (tradeEngine.timeSeriesRepo.ask > sellLimit && moneyFlowIndicatorFastSellOk) {
             tradeEngine.onTradeEvent(Order.sell(orderAmount, tradeEngine.timeSeriesRepo.ask, tradeEngine.series.getCurrentTime()));
 
             lastTradedSellLimit = sellLimit;
             sellLimit = Double.MAX_VALUE;
             lastTradeIndex = tradeEngine.currentBarIndex;
         }
-        if (tradeEngine.timeSeriesRepo.bid < buyLimit) {
+        if (tradeEngine.timeSeriesRepo.bid < buyLimit && moneyFlowIndicatorFastBuyOk) {
             tradeEngine.onTradeEvent(Order.buy(orderAmount, tradeEngine.timeSeriesRepo.bid, tradeEngine.series.getCurrentTime()));
             lastTradedBuyLimit = buyLimit;
             buyLimit = 0.0;
@@ -145,21 +159,26 @@ public class MurrayTwoTenEntry extends Strategy {
 //        if (sellLimit == lastTradedSellLimit) sellLimit = Double.MAX_VALUE; //&&
 
         buyLimit = murrayLevels[2] + 0.00008;
-        if (kcL.getValue(tradeEngine.currentBarIndex).doubleValue() < buyLimit || buyLimit == lastTradedBuyLimit )
+        if ( buyLimit == lastTradedBuyLimit ) //kcL.getValue(tradeEngine.currentBarIndex).doubleValue() < buyLimit ||
             buyLimit = 0.0; // &&
 
 
         sellLimit = murrayLevels[10] - 0.00008;
 
 
-        if (kcU.getValue(tradeEngine.currentBarIndex).doubleValue() > sellLimit || sellLimit == lastTradedSellLimit )
+        if (sellLimit == lastTradedSellLimit ) //kcU.getValue(tradeEngine.currentBarIndex).doubleValue() > sellLimit ||
             sellLimit = Double.MAX_VALUE; //&&
 
     }
 
 
     public void onOneMinuteDataEvent() {
-//        m1CurrentBarIndex = tradeEngine.timeSeriesRepo.getIndex(tradeEngine.series.getCurrentTime(), 1);
+        m1CurrentBarIndex = tradeEngine.timeSeriesRepo.getIndex(tradeEngine.series.getCurrentTime(), 1);
+        moneyFlowIndicatorFastBuyOk=false;
+        moneyFlowIndicatorFastSellOk=false;
+        if (moneyFlowIndicatorFast.getValue(m1CurrentBarIndex).doubleValue()>=moneyFlowIndicatorFast.getValue(m1CurrentBarIndex-1).doubleValue() )  moneyFlowIndicatorFastBuyOk=true;
+        if (moneyFlowIndicatorFast.getValue(m1CurrentBarIndex).doubleValue()<=moneyFlowIndicatorFast.getValue(m1CurrentBarIndex-1).doubleValue())  moneyFlowIndicatorFastSellOk=true;
+
     }
 
 

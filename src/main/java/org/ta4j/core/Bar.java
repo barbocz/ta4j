@@ -31,7 +31,9 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Function;
 import org.strategy.Order;
 
@@ -41,6 +43,13 @@ import org.strategy.Order;
  * Bar object is aggregated open/high/low/close/volume/etc. data over a time timeFrame.
  */
 public interface Bar extends Serializable {
+
+
+
+    void addParameter(double value);
+
+    List<Double> getParameters();
+
 
     HashMap<String, Num[]> getMt4Indicator();
     void addBuffer(String indicatorKey,Num[] value);
