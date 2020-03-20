@@ -173,7 +173,8 @@ public class MurrayTwoTenEntry extends Strategy {
 
 
     public void onOneMinuteDataEvent() {
-        m1CurrentBarIndex = tradeEngine.timeSeriesRepo.getIndex(tradeEngine.series.getCurrentTime(), 1);
+        if (tradeEngine.currentBarIndex<2) return;
+        m1CurrentBarIndex = tradeEngine.timeSeriesRepo.getIndex(tradeEngine.series.getCurrentTime(),1);
         moneyFlowIndicatorFastBuyOk=false;
         moneyFlowIndicatorFastSellOk=false;
         if (moneyFlowIndicatorFast.getValue(m1CurrentBarIndex).doubleValue()>=moneyFlowIndicatorFast.getValue(m1CurrentBarIndex-1).doubleValue() )  moneyFlowIndicatorFastBuyOk=true;
