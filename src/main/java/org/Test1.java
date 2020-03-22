@@ -17,7 +17,7 @@ public class Test1 {
         String backTestFileName="smallBacktestEUR.csv";
 //        backTestFileName="smallestBacktestEUR.csv";
         backTestFileName="backtest.csv";
-//        backTestFileName="2019nov.csv";
+        backTestFileName="2019nov.csv";
 //        backTestFileName="2018nov.csv";
 //        backTestFileName="2019aug.csv";
 //          backTestFileName="2019mar.csv";

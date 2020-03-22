@@ -8,10 +8,14 @@ import org.ta4j.core.indicators.helpers.HighestValueIndicator;
 import org.ta4j.core.indicators.helpers.LowPriceIndicator;
 import org.ta4j.core.indicators.helpers.LowestValueIndicator;
 import org.ta4j.core.indicators.mt4Selection.MurrayMathFixedIndicator;
+import org.ta4j.core.indicators.mt4Selection.MurrayMathIndicator;
 import org.ta4j.core.indicators.volume.MoneyFlowIndicator;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 public class PreTest {
 
@@ -19,7 +23,10 @@ public class PreTest {
     TimeSeriesRepo timeSeriesRepo;
     TimeSeries series, m1Series;
     MoneyFlowIndicator moneyFlowIndicator;
-    MurrayMathFixedIndicator murrayMathIndicators[] = new MurrayMathFixedIndicator[13];
+    MurrayMathIndicator murrayMathIndicators[] = new MurrayMathIndicator[13];
+    Double murrayLevels[] = new Double[13];
+    Double prevMurrayLevels[] = new Double[13];
+    MurrayMathIndicator murrayMathIndicator;
 
     HighPriceIndicator highPriceIndicator;
     HighestValueIndicator highestValueIndicator;
@@ -36,8 +43,9 @@ public class PreTest {
     HashMap<Double, Integer> upwardLevels = new HashMap<>();
 
     Bar bar;
+    int lastBarIndex = -1;
 
-    HashMap< Integer,Double>  buyEntries=new  HashMap<>();
+    HashMap<Integer, Double> buyEntries = new HashMap<>();
 
     public static void main(String[] args) throws Exception {
         PreTest preTest = new PreTest();
@@ -46,9 +54,11 @@ public class PreTest {
 
     PreTest() {
         timeSeriesRepo = new TimeSeriesRepo("EURUSD", "backtest.csv", "yyyy.MM.dd HH:mm");
-        series = timeSeriesRepo.getTimeSeries(3);
+        series = timeSeriesRepo.getTimeSeries(5);
         m1Series = timeSeriesRepo.coreSeries;
         moneyFlowIndicator = new MoneyFlowIndicator(series, 3);
+        Arrays.fill(murrayLevels,0.0);
+        Arrays.fill(prevMurrayLevels,0.0);
 
 
 //        HighPriceIndicator highPriceIndicator = new HighPriceIndicator(series);
@@ -58,38 +68,16 @@ public class PreTest {
 //        LowestValueIndicator lowestValueIndicator = new LowestValueIndicator(lowPriceIndicator, 4);
 
         for (int i = 0; i < 13; i++)
-            murrayMathIndicators[i] = new MurrayMathFixedIndicator(series, i, murrayRange);
+            murrayMathIndicators[i] = new MurrayMathIndicator(series,256,i);
         Bar minuteBar;
         double openPrice, highPrice, lowPrice, closePrice;
         int index;
         boolean checkUpper, checkLower;
 
-        for (int i = 0 ; i < timeSeriesRepo.coreSeries.getEndIndex(); i++) {
+        for (int i = 1; i < timeSeriesRepo.coreSeries.getEndIndex(); i++) {
             minuteBar = timeSeriesRepo.coreSeries.getBar(i);
             ZonedDateTime time = minuteBar.getBeginTime();
             index = series.getIndex(time);
-
-            if (series.getBar(index + 1).getHighPrice().isGreaterThan(murrayMathIndicators[9].getValue(index)))
-                checkUpper = true;
-            else checkUpper = false;
-            if (series.getBar(index + 1).getLowPrice().isLessThan(murrayMathIndicators[3].getValue(index)))
-                checkLower = true;
-            else checkLower = false;
-
-
-
-
-            if (!checkUpper && !checkLower) continue;
-
-            for(Iterator<Double> iterator = downwardLevels.keySet().iterator(); iterator.hasNext(); ) {
-                Double key = iterator.next();
-                if(index - downwardLevels.get(key) > 5) {
-                    iterator.remove();
-                }
-            }
-
-            bar = series.getBar(index + 1);
-
 
             // tick
             openPrice = minuteBar.getOpenPrice().doubleValue();
@@ -97,28 +85,52 @@ public class PreTest {
             lowPrice = minuteBar.getLowPrice().doubleValue();
             closePrice = minuteBar.getClosePrice().doubleValue();
 
+            int currentMurrayLevel=-1;
+            double murrayHeight=0.0;
+            double change=0.0;
+            if (index != lastBarIndex && index > 0) {
+                lastBarIndex = index;
 
-            upperMurrayLevelValues.clear();
-            for (Integer murrayLevel : upperMurrayLevelsToCheck)
-                upperMurrayLevelValues.add(murrayMathIndicators[murrayLevel].getValue(index).doubleValue());
+                for (int m = 0; m < 13; m++)
+                    murrayLevels[m] = murrayMathIndicators[m].getValue(index).doubleValue();
 
-            lowerMurrayLevelValues.clear();
-            for (Integer murrayLevel : lowerMurrayLevelsToCheck)
-                lowerMurrayLevelValues.add(murrayMathIndicators[murrayLevel].getValue(index).doubleValue());
+                if (!murrayLevels[12].equals(prevMurrayLevels[12]) && openPrice>murrayLevels[6] ) {
+                    currentMurrayLevel=getMurrayRange(openPrice);
+                    murrayHeight=Math.min(murrayLevels[1]-murrayLevels[0],prevMurrayLevels[1]-prevMurrayLevels[0]);
+                    change=(murrayLevels[currentMurrayLevel]-prevMurrayLevels[currentMurrayLevel])/murrayHeight;
+                   System.out.println("SELL: "+time+"   "+change);
+                }
+                if (!murrayLevels[0].equals(prevMurrayLevels[0]) && openPrice<murrayLevels[6] ) {
+                    currentMurrayLevel=getMurrayRange(openPrice);
+                    murrayHeight=Math.min(murrayLevels[1]-murrayLevels[0],prevMurrayLevels[1]-prevMurrayLevels[0]);
+                    change=(murrayLevels[currentMurrayLevel]-prevMurrayLevels[currentMurrayLevel])/murrayHeight;
+                    System.out.println("BUY: "+time+"   "+change);
+                }
+
+                prevMurrayLevels=Arrays.copyOf(murrayLevels,13);
+
+
+            }
+
+
+
+
+
+
 
 
 //            System.out.println("setCurrentTime: "+simpleDateFormatter.format(time)+",  otime: "+simpleDateFormatter.format(series.getCurrentBar().getBeginTime())+", etime: "+simpleDateFormatter.format(series.getCurrentBar().getEndTime()));
             // barchange
 
-            if (openPrice > closePrice) {
-                check(index, time, openPrice, highPrice, checkUpper);
-                check(index, time, highPrice, lowPrice, checkUpper);
-                check(index, time, lowPrice, closePrice, checkUpper);
-            } else {
-                check(index, time, openPrice, lowPrice, checkUpper);
-                check(index, time, lowPrice, highPrice, checkUpper);
-                check(index, time, highPrice, closePrice, checkUpper);
-            }
+//            if (openPrice > closePrice) {
+//                check(index, time, openPrice, highPrice, checkUpper);
+//                check(index, time, highPrice, lowPrice, checkUpper);
+//                check(index, time, lowPrice, closePrice, checkUpper);
+//            } else {
+//                check(index, time, openPrice, lowPrice, checkUpper);
+//                check(index, time, lowPrice, highPrice, checkUpper);
+//                check(index, time, highPrice, closePrice, checkUpper);
+//            }
         }
 
 //        for (int i = series.getEndIndex() - 30; i < series.getEndIndex(); i++) {
@@ -127,9 +139,7 @@ public class PreTest {
 //                    System.out.println(i + ". " + series.getBar(i).getBeginTime() + ": " + v);
 //            }
 
-        for(Integer i: buyEntries.keySet()) {
-            System.out.println(i + ". " + series.getBar(i).getBeginTime() + ": " + buyEntries.get(i));
-        }
+//
 
 //        for (int i = series.getEndIndex() - 100; i < series.getEndIndex(); i++) {
 //            if (getBreachLevel(i) > -1) System.out.println(series.getBar(i).getBeginTime());
@@ -162,12 +172,13 @@ public class PreTest {
                     else downwardLevels.put(murrayLevel, index);
                 }
                 if (prevPrice < murrayLevel && currPrice > murrayLevel) {
-                    int lessCounter=0,moreCounter=0;
-                    for(Double downwardLevel: downwardLevels.keySet()) {
-                        if (downwardLevel<murrayLevel && index-downwardLevels.get(downwardLevel)<5) lessCounter++;
-                        if (downwardLevel>murrayLevel && index-downwardLevels.get(downwardLevel)<5) moreCounter++;
+                    int lessCounter = 0, moreCounter = 0;
+                    for (Double downwardLevel : downwardLevels.keySet()) {
+                        if (downwardLevel < murrayLevel && index - downwardLevels.get(downwardLevel) < 5) lessCounter++;
+                        if (downwardLevel > murrayLevel && index - downwardLevels.get(downwardLevel) < 5) moreCounter++;
                     }
-                    if (lessCounter>0 &&  moreCounter>0 && !buyEntries.containsKey(index)) buyEntries.put(index,murrayLevel);
+                    if (lessCounter > 0 && moreCounter > 0 && !buyEntries.containsKey(index))
+                        buyEntries.put(index, murrayLevel);
                 }
 
             }
@@ -200,5 +211,18 @@ public class PreTest {
         return breachedLevel;
     }
 
+
+    int getMurrayRange(double value) {
+        if (murrayLevels[6] > value) {
+            for (int i = 0; i < 6; i++) {
+                if (murrayLevels[i] <= value && murrayLevels[i + 1] > value) return (i);
+            }
+        } else {
+            for (int i = 6; i < 12; i++) {
+                if (murrayLevels[i] <= value && murrayLevels[i + 1] > value) return (i);
+            }
+        }
+        return -1;
+    }
 
 }
