@@ -199,7 +199,7 @@ public class MurrayTwoTenEntry extends Strategy {
 
 
     public void onOneMinuteDataEvent() {
-//        if (tradeEngine.currentBarIndex<2) return;
+        if (tradeEngine.currentBarIndex<2) return;
         m1CurrentBarIndex = tradeEngine.timeSeriesRepo.getIndex(tradeEngine.series.getCurrentTime(),1);
 //        lowPriceValue=lowPriceIndicator.getValue(m1CurrentBarIndex).doubleValue();
 //        highPriceValue=highPriceIndicator.getValue(m1CurrentBarIndex).doubleValue();
