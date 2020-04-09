@@ -17,13 +17,13 @@ public class Test1 {
         String backTestFileName="smallBacktestEUR.csv";
 //        backTestFileName="smallestBacktestEUR.csv";
         backTestFileName="backtest.csv";
-        backTestFileName="2019nov.csv";
+//        backTestFileName="2019nov.csv";
 //        backTestFileName="2018nov.csv";
 //        backTestFileName="2019aug.csv";
 //          backTestFileName="2019mar.csv";
 //        backTestFileName="backTestAUD.csv";
 //        backTestFileName="backtestGBP.csv";
-        backTestFileName="backtestEUR.csv";
+//        backTestFileName="backtestEUR.csv";
 
 
         TimeSeriesRepo timeSeriesRepo=new TimeSeriesRepo("EURUSD",backTestFileName,"yyyy.MM.dd HH:mm");
@@ -38,7 +38,7 @@ public class Test1 {
         TradeEngine.LogLevel logLevel;
         if (backTestFileName=="backtestEUR.csv") logLevel=TradeEngine.LogLevel.BASIC;
         else logLevel=TradeEngine.LogLevel.TOTAL;
-        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new MurrayTwoTenEntry(),new MurrayTwoTenExit_v2(),null, logLevel);
+        TradeEngine tradeEngine=new TradeEngine(timeSeriesRepo,3,new Murray3(),new TestExit(),null, TradeEngine.LogLevel.TOTAL);
         System.out.println(tradeEngine.series.getSymbol());
 //
         tradeEngine.initStrategy();
