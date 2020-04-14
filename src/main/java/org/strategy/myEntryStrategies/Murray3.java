@@ -27,7 +27,7 @@ public class Murray3 extends Strategy {
     double sellUpperLimit=Double.MAX_VALUE,sellLowerLimit=0.0;
     double buyUpperLimit=Double.MAX_VALUE,buyLowerLimit=0.0;
 
-    int upperMurrayLevel,lowerMurrayLevel;
+    int upperMurrayLevel,lowerMurrayLevel,murrayDelta;
     double upperLimit=Double.MAX_VALUE,lowerLimit=0.0;
     ClosePriceIndicator closePriceIndicator;
 
@@ -110,16 +110,21 @@ public class Murray3 extends Strategy {
     public void onTickEvent() throws Exception {
         if (tradeEngine.timeSeriesRepo.ask>upperLimit) {
             upperLimit=Double.MAX_VALUE;
-            System.out.println("CROSS UP: "+tradeEngine.series.getCurrentTime()+", ml: "+upperMurrayLevel);
+            prevMurrayLevel=getMurrayLevel(murrayLevels[upperMurrayLevel],prevMurrayLevels);
+            murrayDelta=getMurrayDelta(upperMurrayLevel);
+            System.out.println("CROSS UP: "+tradeEngine.series.getCurrentTime()+", ml: "+upperMurrayLevel+", pml: "+prevMurrayLevel+", md: "+murrayDelta);
             if (upperMurrayLevel<12) {
                 upperMurrayLevel++;
                 upperLimit=murrayLevels[upperMurrayLevel];
             }
 
+
         }
         if (tradeEngine.timeSeriesRepo.bid<lowerLimit) {
             lowerLimit=0.0;
-            System.out.println("CROSS DN: "+tradeEngine.series.getCurrentTime()+", ml: "+lowerMurrayLevel);
+            prevMurrayLevel=getMurrayLevel(murrayLevels[lowerMurrayLevel],prevMurrayLevels);
+            murrayDelta=getMurrayDelta(lowerMurrayLevel);
+            System.out.println("CROSS DN: "+tradeEngine.series.getCurrentTime()+", ml: "+lowerMurrayLevel+", pml: "+prevMurrayLevel+", md: "+murrayDelta);
             if (lowerMurrayLevel>0) {
                 lowerMurrayLevel--;
                 lowerLimit=murrayLevels[lowerMurrayLevel];
@@ -186,11 +191,6 @@ public class Murray3 extends Strategy {
 
 
     int getMurrayDelta(int entryLevel) {
-
-
-        if (entryLevel > 12) entryLevel = 12;
-        else if (entryLevel < 0) entryLevel = 0;
-
 
         double murrayHeight = prevMurrayLevels[1] - prevMurrayLevels[0] > murrayLevels[1] - murrayLevels[0] ? murrayLevels[1] - murrayLevels[0] : prevMurrayLevels[1] - prevMurrayLevels[0];
 
