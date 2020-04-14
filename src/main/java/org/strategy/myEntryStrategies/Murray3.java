@@ -97,7 +97,7 @@ public class Murray3 extends Strategy {
 //
 //
 //        longCci.subWindowIndex = 4;
-//        tradeEngine.log(longCci);
+
 
 
     }
